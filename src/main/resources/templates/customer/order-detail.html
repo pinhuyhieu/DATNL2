@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chi tiết đơn hàng - Sunday Shoes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* Custom styles for order detail咖啡page */
+        .order-detail-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .order-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .order-info-label {
+            font-weight: bold;
+            color: #343a40;
+        }
+        .order-info-value {
+            color: #495057;
+        }
+        .order-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .order-items-table th, .order-items-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .order-items-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .order-items-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .order-summary {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 2px solid #eee;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+        .summary-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .discount-info {
+            color: #0066cc;
+            font-weight: 500;
+        }
+        .savings-highlight {
+            background-color: #e8f4ff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            border-left: 4px solid #28a745;
+        }
+        .savings-amount {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .final-price-row {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #ddd;
+        }
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+        .fas.fa-tags {
+            color: #ff6b6b;
+        }
+        .fas.fa-piggy-bank {
+            color: #28a745;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #fff;
+        }
+        .status-pending { background-color: #fd7e14; }
+        .status-confirmed { background-color: #007bff; }
+        .status-cancelled { background-color: #dc3545; }
+        .status-shipping { background-color: #ffc107; }
+        .status-completed { background-color: #28a745; }
+        .status-online-paid { background-color: #20c997; }
+        .status-badge i {
+            margin-right: 5px;
+        }
+        .thank-you-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e6f3e6;
+            border-radius: 8px;
+            color: #2e7d32;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .thank-you-message a {
+            color: #2e7d32;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .thank-you-message a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<div class="container order-detail-container mt-4">
+    <div class="order-header">
+        <h1 class="mb-3"><i class="fas fa-file-invoice-dollar"></i> Chi tiết đơn hàng</h1>
+        <h4 th:text="'Mã đơn hàng: ' + ${hoaDon.maHoaDon}"></h4>
+    </div>
+
+    <div class="order-info">
+        <div class="order-info-row">
+            <div class="order-info-label">Ngày đặt hàng:</div>
+            <div class="order-info-value" th:text="${#temporals.format(hoaDon.ngayTaoHoaDon, 'dd-MM-yyyy HH:mm')}"></div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">Ngày giao hàng:</div>
+            <div class="order-info-value" th:text="${hoaDon.ngayBan != null ? #temporals.format(hoaDon.ngayBan, 'dd-MM-yyyy HH:mm') : 'Chưa giao hàng'}"></div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">Trạng thái đơn hàng:</div>
+            <div class="order-info-value">
+                <span class="status-badge"
+                      th:classappend="${hoaDon.trangThai == 'Chờ xác nhận' ? 'status-pending' :
+                       hoaDon.trangThai == 'Đã xác nhận' ? 'status-confirmed' :
+                       hoaDon.trangThai == 'Đã hủy' ? 'status-cancelled' :
+                       hoaDon.trangThai == 'Đang giao hàng' ? 'status-shipping' :
+                       hoaDon.trangThai == 'Đã thanh toán online' ? 'status-online-paid' :
+                       hoaDon.trangThai == 'Đã giao hàng' ? 'status-completed' : ''}">
+                    <i th:class="${hoaDon.trangThai == 'Chờ xác nhận' ? 'fas fa-clock' :
+                          hoaDon.trangThai == 'Đã xác nhận' ? 'fas fa-check' :
+                          hoaDon.trangThai == 'Đã hủy' ? 'fas fa-times' :
+                          hoaDon.trangThai == 'Đang giao hàng' ? 'fas fa-truck' :
+                          hoaDon.trangThai == 'Đã thanh toán online' ? 'fas fa-credit-card' :
+                          hoaDon.trangThai == 'Đã giao hàng' ? 'fas fa-gift' : ''}"></i>
+                    <span th:text="${hoaDon.trangThai}"></span>
+                </span>
+            </div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">Kênh bán hàng:</div>
+            <div class="order-info-value" th:text="${hoaDon.kenhBanHang}"></div>
+        </div>
+        <div class="order-info-row">
+            <div class="order-info-label">Địa chỉ giao hàng:</div>
+            <div class="order-info-value" th:text="${hoaDon.diaChi.ghiChu + ', ' + hoaDon.diaChi.phuongXa + ', ' + hoaDon.diaChi.quanHuyen + ', ' + hoaDon.diaChi.thanhPho}"></div>
+        </div>
+        <div class="order-info-row" th:if="${hoaDon.maGiamGia != null}">
+            <div class="order-info-label">Mã giảm giá:</div>
+            <div class="order-info-value" th:text="${hoaDon.maGiamGia.maGiamGiaId}"></div>
+        </div>
+    </div>
+
+    <h3 class="mt-5 mb-3">Sản phẩm đã mua</h3>
+    <table class="order-items-table">
+        <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Màu sắc</th>
+            <th>Kích cỡ</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${hoaDon.chiTietHoaDons}">
+            <td th:text="${item.chiTietSanPham.sanPham.tenSanPham}"></td>
+            <td th:text="${item.chiTietSanPham.mauSac.tenMauSac}"></td>
+            <td th:text="${item.chiTietSanPham.kichCo.tenKichCo}"></td>
+            <td th:text="${item.soLuong}"></td>
+            <td th:text="${#numbers.formatDecimal(item.gia, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+            <td th:text="${#numbers.formatDecimal(item.soLuong * item.gia, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="order-summary">
+        <!-- Tổng tiền hàng -->
+        <div class="summary-row">
+            <div class="summary-label">Tổng tiền hàng:</div>
+            <div class="summary-value" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></div>
+        </div>
+
+        <!-- Phí giao hàng -->
+        <div class="summary-row">
+            <div class="summary-label">Phí giao hàng:</div>
+            <div class="summary-value"
+                 th:text="${hoaDon.phiVanChuyenGhn != null ? #numbers.formatDecimal(hoaDon.phiVanChuyenGhn, 0, 'COMMA', 0, 'POINT') + ' đ' : 'Miễn phí'}"></div>
+        </div>
+
+        <!-- Mã giảm giá -->
+        <div th:if="${hoaDon.maGiamGia != null}">
+            <div class="summary-row">
+                <div class="summary-label discount-info">
+                    <i class="fas fa-tags"></i> Mã giảm giá:
+                    <span th:text="${hoaDon.maGiamGia.tenMaGiamGia}"></span>
+                    <span th:if="${hoaDon.maGiamGia.loaiGiamGia == 'Phần trăm'}"
+                          th:text="'(' + ${#numbers.formatDecimal(hoaDon.maGiamGia.giaTriGiamGia, 0, 'COMMA', 0, 'POINT')} + '%)'"></span>
+                </div>
+                <div class="summary-value discount-info">
+                    - <span th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                </div>
+            </div>
+            <div class="summary-row savings-highlight">
+                <div class="summary-label">
+                    <i class="fas fa-piggy-bank"></i> Bạn tiết kiệm được:
+                </div>
+                <div class="summary-value savings-amount"
+                     th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></div>
+            </div>
+        </div>
+
+        <!-- Tổng thanh toán -->
+        <div class="summary-row final-price-row">
+            <div class="summary-label">Số tiền cần thanh toán:</div>
+            <div class="summary-value total-amount"
+                 th:text="${#numbers.formatDecimal(totalPayment, 0, 'COMMA', 0, 'POINT') + ' đ'}"></div>
+        </div>
+
+        <div class="summary-row">
+            <div class="summary-label">Phương thức thanh toán:</div>
+            <div class="summary-value" th:if="${not #lists.isEmpty(hoaDon.phuongThucThanhToans)}">
+                <span th:each="payment, iterStat : ${hoaDon.phuongThucThanhToans}"
+                      th:text="${payment.phuongThuc} + ${!iterStat.last ? ', ' : ''}"></span>
+            </div>
+            <div class="summary-value" th:if="${#lists.isEmpty(hoaDon.phuongThucThanhToans)}">
+                Chưa có thông tin thanh toán
+            </div>
+        </div>
+
+        <div class="text-center mt-4" th:if="${hoaDon.trangThai == 'Chờ xác nhận'}">
+            <button type="button" class="btn btn-danger" th:onclick="'confirmCancelOrder(\'' + ${hoaDon.hoaDonId} + '\')'">
+                <i class="fas fa-times"></i> Hủy đơn hàng
+            </button>
+        </div>
+
+        <!-- Thank you message -->
+        <div class="thank-you-message">
+            Cảm ơn quý khách đã mua hàng, nếu có thắc mắc hay cần hỗ trợ về đơn hàng, vui lòng liên hệ tới số hotline: <a href="tel:0826263688">0826263688</a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function confirmCancelOrder(orderId) {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn hủy đơn hàng này?',
+            text: "Hành động này không thể hoàn tác!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Hủy đơn hàng',
+            cancelButtonText: 'Thoát'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/order/cancel/' + orderId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Đã hủy!',
+                                'Đơn hàng của bạn đã được hủy thành công.',
+                                'success'
+                            ).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Lỗi!',
+                                data.message || 'Không thể hủy đơn hàng.',
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            'Lỗi!',
+                            'Có lỗi xảy ra khi hủy đơn hàng.',
+                            'error'
+                        );
+                    });
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi Tiết Khách Hàng</title>
+    <link rel="stylesheet" href="/css/menu.css">
+    <link rel="stylesheet" href="/css/custom-sweetalert.css">
+    <link rel="stylesheet" href="/css/crud-thuoc-tinh.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style th:inline="css">
+        .address-list {
+            margin-top: 10px;
+            /* No layout changes here for now, keep vertical flow */
+        }
+
+        .address-item {
+            margin-bottom: 15px; /* Slightly reduced margin-bottom */
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); /* More subtle shadow */
+            border: 1px solid #e0e0e0; /* Lighter border color */
+            display: grid; /* Enable CSS Grid for layout */
+            grid-template-columns: auto 1fr; /* Two columns: auto width for label, remaining space for value */
+            gap: 8px 15px; /* Row and column gap */
+            font-size: 14px; /* Slightly smaller font size */
+        }
+
+        .address-row {
+            /* No need for display:flex anymore, Grid handles layout */
+            margin-bottom: 0; /* Remove margin-bottom from address-row */
+        }
+
+        .address-label {
+            font-weight: 500; /* Slightly less bold label */
+            color: #666;      /* Darker gray label color */
+            text-align: left;  /* Align labels to the left (within their grid cell) */
+            padding-right: 0; /* Remove right padding from labels */
+        }
+
+        .address-value {
+            color: #555;      /* Slightly darker value color */
+            /* No need for flex: 1 anymore, Grid handles spacing */
+        }
+        .customer-info-section {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            margin-bottom: 20px; /* Add margin-bottom to separate from next section */
+        }
+
+        .customer-info-section h3,
+        .address-section h3,
+        .order-history-section h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 10px;
+        }
+
+        .customer-info-row {
+            display: flex; /* Use Flexbox for layout */
+            align-items: flex-start; /* Align items to the start vertically */
+            margin-bottom: 12px; /* Increased margin-bottom for more spacing between rows */
+        }
+
+        .customer-info-label {
+            width: 120px; /* Fixed width for labels */
+            font-weight: bold;
+            color: #555;
+            text-align: right; /* Align labels to the right */
+            padding-right: 10px; /* Add some right padding to labels */
+            flex-shrink: 0; /* Prevent label from shrinking */
+        }
+
+        .customer-info-value {
+            flex: 1; /* Allow value to take remaining space */
+            color: #777;
+            /* No display:block needed anymore with Flexbox layout */
+            /* No need to force value to a new line */
+        }
+
+        .address-section {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        /* ... existing CSS ... */
+
+        /* --- Collapsible Address Section Styles --- */
+        .address-collapsible {
+            margin-top: 10px; /* Add some margin above the collapsible section */
+        }
+
+        .address-toggle {
+            background-color: #f0f0f0; /* Light gray background for toggle button */
+            color: #555; /* Darker text color */
+            border: 1px solid #ddd; /* Border to match address-item */
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex; /* Use flex to align icon and text */
+            align-items: center;
+            justify-content: center;
+            width: 100%; /* Full width button */
+            text-align: center; /* Center text */
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .address-toggle:hover {
+            background-color: #e0e0e0; /* Darker gray on hover */
+        }
+
+        .address-toggle i {
+            margin-right: 8px; /* Space between icon and text */
+            font-size: 0.9em; /* Slightly smaller icon */
+        }
+
+        .address-list-container {
+            margin-top: 10px; /* Space between toggle button and address list */
+            overflow: hidden; /* Clip content during animation if needed */
+            transition: max-height 0.3s ease-out; /* Optional: for animated collapse */
+        }
+
+        /* .address-list and .address-item styles remain the same from previous response */
+
+        /* ... rest of CSS ... */
+    </style>
+</head>
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<main>
+    <div class="container">
+        <div class="customer-detail-container">
+            <div class="customer-detail-header">
+                <h2><i class="fas fa-user-circle"></i> Chi Tiết Khách Hàng</h2>
+            </div>
+
+            <div class="customer-detail-info">
+                <div class="customer-info-section">
+                    <h3>Thông Tin Khách Hàng</h3>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">ID:</div>
+                        <div class="customer-info-value" th:text="${khachHang.khachHangId}"></div>
+                    </div>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">Mã KH:</div>
+                        <div class="customer-info-value" th:text="${khachHang.maKhachHang}"></div>
+                    </div>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">Tên:</div>
+                        <div class="customer-info-value" th:text="${khachHang.ten}"></div>
+                    </div>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">Email:</div>
+                        <div class="customer-info-value" th:text="${khachHang.email}"></div>
+                    </div>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">Số ĐT:</div>
+                        <div class="customer-info-value" th:text="${khachHang.soDienThoai}"></div>
+                    </div>
+                    <div class="customer-info-row">
+                        <div class="customer-info-label">Trạng Thái:</div>
+                        <div class="customer-info-value" th:text="${khachHang.trangThai}"></div>
+                    </div>
+                    <!-- ... Thêm các thông tin khác từ KhachHang ... -->
+                </div>
+
+                <div class="address-section">
+                    <h3>Địa Chỉ Đã Sử Dụng <span th:if="${not diaChiList.isEmpty()}" th:text="'(' + ${diaChiList.size()} + ' địa chỉ)'"></span></h3>
+
+                    <div class="address-collapsible">
+                        <button type="button" class="address-toggle" onclick="toggleAddressCollapse()">
+                            <i class="fas fa-chevron-down"></i> Xem Địa Chỉ
+                        </button>
+                        <div class="address-list-container" id="addressListContainer" style="display: none;">
+                            <div class="address-list" th:if="${not diaChiList.isEmpty()}">
+                                <div class="address-item" th:each="diaChi : ${diaChiList}">
+                                    <div class="address-row">
+                                        <div class="address-label">Thành Phố:</div>
+                                        <div class="address-value" th:text="${diaChi.thanhPho}"></div>
+                                    </div>
+                                    <div class="address-row">
+                                        <div class="address-label">Quận/Huyện:</div>
+                                        <div class="address-value" th:text="${diaChi.quanHuyen}"></div>
+                                    </div>
+                                    <div class="address-row">
+                                        <div class="address-label">Phường/Xã:</div>
+                                        <div class="address-value" th:text="${diaChi.phuongXa}"></div>
+                                    </div>
+                                    <div class="address-row">
+                                        <div class="address-label">Ghi Chú:</div>
+                                        <div class="address-value" th:text="${diaChi.ghiChu}"></div>
+                                    </div>
+                                    <div class="address-row">
+                                        <div class="address-label">Mặc Định:</div>
+                                        <div class="address-value" th:text="${diaChi.macDinh ? 'Có' : 'Không'}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="address-list" th:if="${diaChiList.isEmpty()}">
+                                <p>Khách hàng chưa có địa chỉ nào.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-history-section">
+                    <h3>Lịch Sử Đơn Hàng</h3>
+                    <div class="table-responsive" th:if="${not hoaDonList.isEmpty()}">
+                        <table class="order-history-custom-table">  <!-- Changed class here -->
+                            <thead>
+                            <tr>
+                                <th>Mã HĐ</th>
+                                <th>Ngày Tạo</th>
+                                <th>Trạng Thái</th>
+                                <th>Tổng Tiền</th>
+                                <th></th> <!-- Cột cho nút Chi tiết -->
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="hoaDon : ${hoaDonList}">
+                                <td th:text="${hoaDon.maHoaDon}"></td>
+                                <td th:text="${#temporals.format(hoaDon.ngayTaoHoaDon, 'dd-MM-yyyy HH:mm')}"></td>
+                                <td th:text="${hoaDon.trangThai}"></td>
+                                <td th:text="${#numbers.formatDecimal(hoaDon.tongTien, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></td>
+                                <td class="action-buttons">
+                                    <a th:href="@{/admin/hoa-don/detail/{id}(id=${hoaDon.hoaDonId})}"
+                                       class="order-history-custom-table detail-button action-button">  <!-- Updated button class -->
+                                        <i class="fas fa-info-circle"></i> Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="order-history-section" th:if="${hoaDonList.isEmpty()}">
+                        <p>Khách hàng chưa có đơn hàng nào.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/admin/khach-hang/hien-thi}" class="cancel-button action-button">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="/js/menu.js"></script>
+<script src="/js/sweetalert.js"></script>
+<script th:inline="javascript">
+    function toggleAddressCollapse() {
+        var container = document.getElementById('addressListContainer');
+        var button = document.querySelector('.address-toggle i');
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            button.classList.remove('fa-chevron-down');
+            button.classList.add('fa-chevron-up');
+        } else {
+            container.style.display = 'none';
+            button.classList.remove('fa-chevron-up');
+            button.classList.add('fa-chevron-down');
+        }
+    }
+</script>
+</body>
+</html>

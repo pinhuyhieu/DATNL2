@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Thanh toán - Sunday Shoes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.css">
+    <style>
+        /* ... (keep existing styles) ... */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .checkout-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .checkout-section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #343a40;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .checkout-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .summary-value {
+            color: #212529;
+        }
+        .total-row {
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding-top: 15px;
+        }
+        .payment-methods {
+            margin-top: 20px;
+        }
+        .payment-method-option {
+            margin-bottom: 10px;
+        }
+        .payment-method-option label {
+            font-weight: normal;
+            margin-left: 10px;
+        }
+        .coupon-section {
+            margin-top: 20px;
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .border-primary {
+            border-width: 2px !important;
+        }
+        .select-coupon-btn {
+            transition: all 0.2s ease;
+        }
+        .select-coupon-btn:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+        #couponCode {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+        #coupon-status .alert {
+            margin-top: 10px;
+            padding: .75rem 1.25rem;
+            font-size: .875em;
+        }
+        /* Style for the error message block */
+        .error-message-section {
+            margin-bottom: 20px; /* Add some space below the error */
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<div class="container checkout-container mt-4">
+    <h1 class="mb-5 text-center"><i class="fas fa-shopping-cart"></i> Thanh toán</h1>
+
+    <!-- ===================================== -->
+    <!-- == ERROR MESSAGE DISPLAY SECTION == -->
+    <!-- ===================================== -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show error-message-section" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong th:text="${errorMessage}">Error message placeholder</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <!-- ===================================== -->
+    <!-- == END ERROR MESSAGE DISPLAY SECTION == -->
+    <!-- ===================================== -->
+
+
+    <form id="checkout-form" method="post">
+        <div class="row">
+            <div class="col-md-8">
+                <section>
+                    <h2 class="checkout-section-title"><i class="fas fa-truck"></i> Thông tin giao hàng</h2>
+                    <!-- Input fields for fullName, phone, address etc. -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                                <!-- Populate value if needed from previous attempt -->
+                                <input type="text" class="form-control" id="fullName" name="fullName" required th:value="${param.fullName != null ? param.fullName : ''}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                                <!-- Populate value if needed -->
+                                <input type="tel" class="form-control" id="phone" name="phone" required pattern="[0-9]{10,11}" title="Số điện thoại phải có 10 hoặc 11 chữ số" th:value="${param.phone != null ? param.phone : ''}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="province">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <select class="form-control" id="province" name="province" required onchange="loadDistricts()">
+                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                </select>
+                                <input type="hidden" id="provinceName" name="provinceName">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="district">Quận/Huyện <span class="text-danger">*</span></label>
+                                <select class="form-control" id="district" name="district" required disabled onchange="loadWards()">
+                                    <option value="">-- Chọn Quận/Huyện --</option>
+                                </select>
+                                <input type="hidden" id="districtName" name="districtName">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="ward">Phường/Xã <span class="text-danger">*</span></label>
+                                <select class="form-control" id="ward" name="ward" required disabled onchange="calculateShipping()">
+                                    <option value="">-- Chọn Phường/Xã --</option>
+                                </select>
+                                <input type="hidden" id="wardName" name="wardName">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="detailedAddress">Địa chỉ chi tiết (Số nhà, đường...) <span class="text-danger">*</span></label>
+                        <!-- Populate value if needed -->
+                        <textarea class="form-control" id="detailedAddress" name="detailedAddress" rows="2" required th:text="${param.detailedAddress != null ? param.detailedAddress : ''}"></textarea>
+                    </div>
+                </section>
+
+                <section class="payment-methods mt-4">
+                    <h2 class="checkout-section-title"><i class="fas fa-credit-card"></i> Phương thức thanh toán</h2>
+                    <!-- Payment method options -->
+                    <div class="payment-method-option">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                   th:checked="${param.paymentMethod == null or param.paymentMethod == 'COD'}">
+                            <label class="form-check-label" for="cod">
+                                Thanh toán khi nhận hàng (COD)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="payment-method-option">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="vnpay" value="VNPAY"
+                                   th:checked="${param.paymentMethod == 'VNPAY'}">
+                            <label class="form-check-label" for="vnpay">
+                                VNPAY
+                            </label>
+                        </div>
+                    </div>
+                    <div class="payment-method-option">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="vietqr" value="vietqr"
+                                   th:checked="${param.paymentMethod == 'vietqr'}">
+                            <label class="form-check-label" for="vietqr">
+                                VietQR
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- COUPON SECTION -->
+                <section class="coupon-section mt-4">
+                    <h2 class="checkout-section-title"><i class="fas fa-tag"></i> Mã giảm giá</h2>
+                    <div class="p-3 border rounded bg-light">
+                        <div class="d-flex align-items-center mb-3">
+                            <label for="couponCode" class="form-label me-2 mb-0 text-nowrap">Mã đã chọn:</label>
+                            <!-- Populate value if needed -->
+                            <input type="text" class="form-control me-2" id="couponCode" name="couponCode" placeholder="Chưa chọn mã giảm giá" readonly th:value="${param.couponCode != null ? param.couponCode : ''}">
+                            <button type="button" class="btn btn-outline-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#couponModal">
+                                <i class="fas fa-search"></i> Chọn mã
+                            </button>
+                            <button type="button" class="btn btn-outline-danger ms-2 flex-shrink-0" id="removeCouponBtn" style="display: none;">
+                                <i class="fas fa-times"></i> Xóa
+                            </button>
+                        </div>
+                        <div id="coupon-status" class="mt-2">
+                            <!-- Status messages appear here -->
+                        </div>
+                    </div>
+                </section>
+                <!-- END COUPON SECTION -->
+
+            </div>
+
+            <div class="col-md-4">
+                <section class="checkout-summary">
+                    <h2 class="checkout-section-title"><i class="fas fa-list-alt"></i> Tóm tắt đơn hàng</h2>
+                    <!-- Cart items display -->
+                    <ul class="list-unstyled">
+                        <li class="summary-item" th:each="item : ${cartItems}">
+                            <span class="summary-label" th:text="${item.tenSanPham} + ' x ' + ${item.soLuong}"></span>
+                            <span class="summary-value" th:text="${#numbers.formatDecimal(item.gia * item.soLuong, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        </li>
+                    </ul>
+                    <!-- Subtotal, Discount, Shipping, Total -->
+                    <div class="summary-item total-row">
+                        <span class="summary-label">Tạm tính:</span>
+                        <span class="summary-value" id="subtotal" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                    </div>
+                    <div class="summary-item" id="discount-row" style="display: none;">
+                        <span class="summary-label">Giảm giá:</span>
+                        <span class="summary-value text-success" id="discount-value"></span>
+                        <input type="hidden" id="discountAmount" name="discountAmount" value="0">
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Phí vận chuyển:</span>
+                        <!-- Populate value if needed -->
+                        <span class="summary-value" id="shippingFeeDisplay">Chọn địa chỉ để tính phí</span>
+                        <input type="hidden" id="shippingFee" name="shippingFee" th:value="${param.shippingFee != null ? param.shippingFee : '0'}">
+                    </div>
+                    <div class="summary-item total-row">
+                        <span class="summary-label">Tổng cộng:</span>
+                        <span class="summary-value text-success" id="total" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                        <input type="hidden" id="totalAmount" name="totalAmount" th:value="${subtotal}">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-3" id="place-order-btn"><i class="fas fa-check"></i> Đặt hàng</button>
+                </section>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal Mã giảm giá -->
+    <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+        <!-- Modal content -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="couponModalLabel">Chọn mã giảm giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="spinner-border text-primary" role="status" id="couponLoadingSpinner">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                    <div id="availableCouponsContainer" class="row">
+                        <!-- Các mã giảm giá sẽ được load vào đây -->
+                    </div>
+                    <div id="noCouponsMessage" class="text-center" style="display: none;">
+                        <p class="text-muted">Không có mã giảm giá nào khả dụng.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.12/dist/sweetalert2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script th:inline="javascript">
+    // Keep track of the selected coupon object { code, discountAmount }
+    let selectedCoupon = null;
+    // Variable to hold previously selected address values if page reloads on error
+    const previousAddress = {
+        province: /*[[${param.province}]]*/ null,
+        district: /*[[${param.district}]]*/ null,
+        ward: /*[[${param.ward}]]*/ null,
+        shippingFee: /*[[${param.shippingFee}]]*/ null
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProvinces().then(() => {
+            // If there was a previous selection (due to page reload on error), re-select it
+            if (previousAddress.province) {
+                const provinceSelect = document.getElementById('province');
+                provinceSelect.value = previousAddress.province;
+                // Trigger district load only if province was successfully re-selected
+                if(provinceSelect.value === previousAddress.province) {
+                    loadDistricts().then(() => {
+                        if (previousAddress.district) {
+                            const districtSelect = document.getElementById('district');
+                            districtSelect.value = previousAddress.district;
+                            if(districtSelect.value === previousAddress.district) {
+                                loadWards().then(() => {
+                                    if (previousAddress.ward) {
+                                        const wardSelect = document.getElementById('ward');
+                                        wardSelect.value = previousAddress.ward;
+                                        // Re-calculate shipping if all parts of address are restored
+                                        if(wardSelect.value === previousAddress.ward) {
+                                            // If we have a previously calculated fee, use it directly, otherwise recalculate
+                                            if (previousAddress.shippingFee !== null) {
+                                                document.getElementById('shippingFeeDisplay').textContent = formatCurrency(previousAddress.shippingFee) + ' đ';
+                                                document.getElementById('shippingFee').value = previousAddress.shippingFee;
+                                                updateTotalAmount();
+                                            } else {
+                                                calculateShipping(); // Recalculate if fee wasn't preserved
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        // Initialize coupon state based on potential previous input (if form reloaded)
+        const initialCouponCode = document.getElementById('couponCode').value;
+        if(initialCouponCode){
+            // If there's a code, assume it was valid before reload.
+            // We need to re-fetch its discount value or find a way to persist it.
+            // For simplicity, let's just show the remove button and status if code exists.
+            // Re-applying logic would require another AJAX call or passing discount back.
+            // Let's assume discount needs re-selection via modal for now if page reloads.
+            // Simplified approach: Just visually restore the state
+            document.getElementById('removeCouponBtn').style.display = 'inline-block';
+            document.getElementById('coupon-status').innerHTML = `
+                <div class="alert alert-info py-2 px-3 mb-0 small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Mã <strong>${initialCouponCode}</strong> đã được chọn. Vui lòng mở lại modal để xác nhận giảm giá.
+                </div>
+           `;
+            // We DON'T set selectedCoupon here as discount is unknown after reload
+            // User must re-select from modal to get discount applied correctly
+            document.getElementById('discount-row').style.display = 'none'; // Hide discount row
+            document.getElementById('discountAmount').value = 0; // Reset discount
+        } else {
+            document.getElementById('removeCouponBtn').style.display = 'none';
+            document.getElementById('couponCode').placeholder = 'Chưa chọn mã giảm giá';
+            document.getElementById('coupon-status').innerHTML = '';
+            selectedCoupon = null; // Ensure coupon is null initially or after reload if none selected
+            document.getElementById('discount-row').style.display = 'none'; // Ensure discount row is hidden
+            document.getElementById('discountAmount').value = 0; // Ensure discount is 0
+        }
+
+
+        updateTotalAmount(); // Initialize total amount
+    });
+
+    // --- Existing functions (loadProvinces, loadDistricts, loadWards, calculateShipping, etc.) ---
+    // Minor adjustments might be needed in these if the async/await structure needs refinement
+    // Make sure loadDistricts, loadWards return the Promise from axios call
+    // Example adjustment for loadProvinces:
+    async function loadProvinces() {
+        const provinceSelect = document.getElementById('province');
+        provinceSelect.disabled = false;
+        provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+
+        try {
+            const response = await axios.get('/checkout/provinces'); // Return the promise
+            const provinces = response.data;
+            provinces.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province.ProvinceID;
+                option.text = province.ProvinceName;
+                provinceSelect.appendChild(option);
+            });
+            if (provinceSelect.options.length === 1 && provinces.length === 0) {
+                provinceSelect.disabled = true;
+                provinceSelect.innerHTML = '<option value="">-- Không có dữ liệu Tỉnh/Thành phố --</option>';
+            }
+        } catch (error) {
+            console.error("Error loading provinces:", error);
+            provinceSelect.disabled = true;
+            provinceSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Không thể tải danh sách tỉnh/thành phố.' });
+            throw error; // Re-throw error to be caught by caller if needed
+        }
+    }
+
+    async function loadDistricts() {
+        const provinceSelect = document.getElementById('province');
+        const districtSelect = document.getElementById('district');
+        const wardSelect = document.getElementById('ward');
+
+        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        districtSelect.disabled = true;
+        wardSelect.disabled = true;
+        document.getElementById('shippingFeeDisplay').textContent = "Chọn địa chỉ để tính phí";
+        document.getElementById('shippingFee').value = 0;
+        updateTotalAmount();
+
+        const provinceId = provinceSelect.value;
+        document.getElementById('provinceName').value = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+
+        if (!provinceId) return; // Return resolved promise if no provinceId
+
+        try {
+            districtSelect.disabled = false;
+            const response = await axios.get('/checkout/districts', { params: { provinceId: parseInt(provinceId) } }); // Return the promise
+            const districts = response.data;
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.DistrictID;
+                option.text = district.DistrictName;
+                districtSelect.appendChild(option);
+            });
+            if (districtSelect.options.length === 1 && districts.length === 0) {
+                districtSelect.disabled = true;
+                districtSelect.innerHTML = '<option value="">-- Không có dữ liệu Quận/Huyện --</option>';
+            }
+        } catch (error) {
+            console.error("Error loading districts:", error);
+            districtSelect.disabled = true;
+            districtSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Không thể tải danh sách quận/huyện.' });
+            throw error; // Re-throw
+        }
+    }
+
+    async function loadWards() {
+        const districtSelect = document.getElementById('district');
+        const wardSelect = document.getElementById('ward');
+
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        wardSelect.disabled = true;
+        document.getElementById('shippingFeeDisplay').textContent = "Chọn địa chỉ để tính phí";
+        document.getElementById('shippingFee').value = 0;
+        updateTotalAmount();
+
+        const districtId = districtSelect.value;
+        document.getElementById('districtName').value = districtSelect.options[districtSelect.selectedIndex]?.text || '';
+
+        if (!districtId) return; // Return resolved promise
+
+        try {
+            wardSelect.disabled = false;
+            const response = await axios.get('/checkout/wards', { params: { districtId: parseInt(districtId) } }); // Return the promise
+            const wards = response.data;
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward.WardCode;
+                option.text = ward.WardName;
+                wardSelect.appendChild(option);
+            });
+            if (wardSelect.options.length === 1 && wards.length === 0) {
+                wardSelect.disabled = true;
+                wardSelect.innerHTML = '<option value="">-- Không có dữ liệu Phường/Xã --</option>';
+            }
+        } catch (error) {
+            console.error("Error loading wards:", error);
+            wardSelect.disabled = true;
+            wardSelect.innerHTML = '<option value="">-- Lỗi khi tải dữ liệu --</option>';
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Không thể tải danh sách phường/xã.' });
+            throw error; // Re-throw
+        }
+    }
+
+
+    async function calculateShipping() {
+        const provinceSelect = document.getElementById('province');
+        const districtSelect = document.getElementById('district');
+        const wardSelect = document.getElementById('ward');
+        const shippingFeeDisplay = document.getElementById('shippingFeeDisplay');
+        const shippingFeeInput = document.getElementById('shippingFee');
+        const wardNameInput = document.getElementById('wardName');
+
+        const provinceCode = provinceSelect.value;
+        const districtCode = districtSelect.value;
+        const wardCode = wardSelect.value;
+
+        wardNameInput.value = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+
+        if (!provinceCode || !districtCode || !wardCode) {
+            shippingFeeDisplay.textContent = "Chọn địa chỉ để tính phí";
+            shippingFeeInput.value = 0;
+            updateTotalAmount();
+            return;
+        }
+
+        shippingFeeDisplay.textContent = "Đang tính...";
+        try {
+            const cartItems = /*[[${cartItems}]]*/ [];
+            if (!cartItems || cartItems.length === 0) {
+                shippingFeeDisplay.textContent = "Không có sản phẩm";
+                shippingFeeInput.value = 0;
+                updateTotalAmount();
+                return;
+            }
+
+            const response = await axios.post('/checkout/calculate-shipping-fee', cartItems, {
+                params: {
+                    districtCode: parseInt(districtCode),
+                    wardCode: wardCode
+                }
+            });
+            const shippingFee = response.data;
+            shippingFeeDisplay.textContent = formatCurrency(shippingFee) + ' đ';
+            shippingFeeInput.value = shippingFee;
+            updateTotalAmount();
+        } catch (error) {
+            console.error("Error calculating shipping fee:", error);
+            shippingFeeDisplay.textContent = "Lỗi tính phí";
+            shippingFeeInput.value = 0;
+            updateTotalAmount();
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Không thể tính phí vận chuyển.' });
+        }
+    }
+
+    function updateTotalAmount() {
+        const subtotal = parseFloat(/*[[${subtotal}]]*/ 0);
+        const shippingFee = parseFloat(document.getElementById('shippingFee').value) || 0;
+        const totalAmountInput = document.getElementById('totalAmount');
+        let discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0; // Read from hidden input
+
+        // If a coupon is actively selected *now* (not just from page reload), use its value
+        if (selectedCoupon && typeof selectedCoupon.discountAmount === 'number') {
+            discountAmount = selectedCoupon.discountAmount;
+            document.getElementById('discountAmount').value = discountAmount; // Ensure hidden input matches active coupon
+        }
+
+        console.log("Updating Total - Subtotal:", subtotal, "Shipping:", shippingFee, "Discount:", discountAmount);
+
+        const totalAmount = subtotal + shippingFee - discountAmount;
+        const finalTotal = Math.max(0, totalAmount);
+
+        document.getElementById('total').textContent = formatCurrency(finalTotal) + ' đ';
+        totalAmountInput.value = finalTotal;
+
+        // Show/hide discount row based on discountAmount
+        const discountRow = document.getElementById('discount-row');
+        if(discountAmount > 0) {
+            document.getElementById('discount-value').textContent = '-' + formatCurrency(discountAmount) + ' đ';
+            discountRow.style.display = 'flex';
+        } else {
+            discountRow.style.display = 'none';
+        }
+
+
+        console.log("Total Amount (Final):", finalTotal);
+    }
+
+    function formatCurrency(amount) {
+        const numAmount = parseFloat(amount);
+        if (isNaN(numAmount)) return '0';
+        return numAmount.toLocaleString('vi-VN'); // Simpler formatting
+    }
+
+    document.querySelector('[data-bs-target="#couponModal"]').addEventListener('click', function() {
+        loadAvailableCoupons();
+    });
+
+    async function loadAvailableCoupons() {
+        const loadingSpinner = document.getElementById('couponLoadingSpinner');
+        const couponsContainer = document.getElementById('availableCouponsContainer');
+        const noCouponsMessage = document.getElementById('noCouponsMessage');
+
+        loadingSpinner.style.display = 'block';
+        couponsContainer.innerHTML = '';
+        noCouponsMessage.style.display = 'none';
+
+        try {
+            const subtotal = parseFloat(/*[[${subtotal}]]*/ 0);
+            const response = await axios.get('/checkout/available-coupons', { params: { subtotal: subtotal } });
+            const coupons = response.data;
+            loadingSpinner.style.display = 'none';
+
+            if (!coupons || coupons.length === 0) {
+                noCouponsMessage.style.display = 'block';
+                return;
+            }
+
+            // Use the current coupon code from the input to highlight
+            const currentCouponCode = document.getElementById('couponCode').value;
+
+            coupons.forEach(coupon => {
+                const couponCard = createCouponCard(coupon, currentCouponCode);
+                couponsContainer.appendChild(couponCard);
+            });
+        } catch (error) {
+            console.error('Lỗi khi tải mã giảm giá:', error);
+            loadingSpinner.style.display = 'none';
+            noCouponsMessage.style.display = 'block';
+            noCouponsMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi tải mã giảm giá.</p>';
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: 'Không thể tải danh sách mã giảm giá khả dụng.' });
+        }
+    }
+
+    // Modified createCouponCard to accept currentCouponCode for highlighting
+    function createCouponCard(coupon, currentCouponCode) {
+        const couponCol = document.createElement('div');
+        couponCol.className = 'col-md-6 mb-3';
+
+        let formattedDate = 'N/A';
+        if (coupon.expiryDate) {
+            formattedDate = new Date(coupon.expiryDate).toLocaleDateString('vi-VN');
+        }
+
+        let discountText = '';
+        let buttonDiscountAmount = 0;
+        const subtotal = parseFloat(/*[[${subtotal}]]*/ 0);
+
+        if (coupon.discountType === 'PERCENT') {
+            discountText = `Giảm ${coupon.discountValue}%`;
+            let calculatedDiscount = (subtotal * coupon.discountValue) / 100;
+            if (coupon.maxDiscountAmount && calculatedDiscount > coupon.maxDiscountAmount) {
+                calculatedDiscount = coupon.maxDiscountAmount;
+            }
+            buttonDiscountAmount = calculatedDiscount;
+        } else if (coupon.discountType === 'FIXED') {
+            discountText = `Giảm ${formatCurrency(coupon.discountValue)} đ`;
+            buttonDiscountAmount = coupon.discountValue;
+        }
+
+        // Use actual discount amount calculated by backend if available
+        const actualDiscountAmount = coupon.discountAmount !== undefined ? coupon.discountAmount : buttonDiscountAmount;
+
+        // Check if this coupon is the currently selected one
+        const isSelected = selectedCoupon && selectedCoupon.code === coupon.code;
+        // Also consider the case where page reloaded and the input holds the code
+        const isPreSelected = !selectedCoupon && currentCouponCode === coupon.code;
+
+
+        couponCol.innerHTML = `
+        <div class="card h-100 ${isSelected || isPreSelected ? 'border-primary' : ''}">
+            <div class="card-body d-flex flex-column">
+                 <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0 me-2">${coupon.code}</h5>
+                        <span class="badge bg-success flex-shrink-0">${discountText}</span>
+                    </div>
+                    <div class="mb-1">
+                        <small class="text-muted d-block">Đơn tối thiểu: ${formatCurrency(coupon.minOrderValue)} đ</small>
+                        <small class="text-muted d-block">HSD: ${formattedDate}</small>
+                        ${coupon.maxDiscountAmount !== undefined && coupon.maxDiscountAmount !== null ? `<small class="text-muted d-block">Giảm tối đa: ${formatCurrency(coupon.maxDiscountAmount)} đ</small>` : ''}
+                        ${coupon.description ? `<small class="text-muted fst-italic d-block mt-1">"${coupon.description}"</small>` : ''}
+                     </div>
+                 </div>
+                 <div class="mt-auto pt-2">
+                    <button class="btn btn-sm btn-outline-primary w-100 select-coupon-btn"
+                            data-coupon-code="${coupon.code}"
+                            data-discount-amount="${actualDiscountAmount}">
+                        ${isSelected || isPreSelected ? 'Đã chọn' : `Áp dụng (Giảm ${formatCurrency(actualDiscountAmount)} đ)`}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        couponCol.querySelector('.select-coupon-btn').addEventListener('click', function() {
+            const code = this.getAttribute('data-coupon-code');
+            const discountAmount = parseFloat(this.getAttribute('data-discount-amount'));
+            selectCoupon(code, discountAmount);
+        });
+
+        return couponCol;
+    }
+
+
+    function selectCoupon(code, discountAmount) {
+        const couponCodeInput = document.getElementById('couponCode');
+        const removeCouponBtn = document.getElementById('removeCouponBtn');
+        const couponStatusDiv = document.getElementById('coupon-status');
+
+        // Update selected coupon global variable
+        selectedCoupon = { code, discountAmount };
+
+        couponCodeInput.value = code;
+        couponCodeInput.placeholder = '';
+        removeCouponBtn.style.display = 'inline-block';
+
+        couponStatusDiv.innerHTML = `
+            <div class="alert alert-success py-2 px-3 mb-0 small">
+                <i class="fas fa-check-circle me-1"></i>
+                Mã <strong>${code}</strong> đã được áp dụng. Bạn được giảm <strong>${formatCurrency(discountAmount)} đ</strong>.
+            </div>
+        `;
+
+        // Update discount amount in hidden field and recalculate total
+        document.getElementById('discountAmount').value = discountAmount;
+        updateTotalAmount();
+
+        // Close modal
+        const couponModalEl = document.getElementById('couponModal');
+        if (couponModalEl) {
+            const couponModal = bootstrap.Modal.getInstance(couponModalEl) || new bootstrap.Modal(couponModalEl); // Get instance or create if needed
+            couponModal.hide();
+        } else {
+            console.warn("Coupon modal element not found for hiding.");
+        }
+
+        // Update highlighting in the modal for next time it opens
+        updateCouponCardSelection(code);
+    }
+
+    function updateCouponCardSelection(selectedCode) {
+        const cards = document.querySelectorAll('#availableCouponsContainer .card');
+        cards.forEach(card => {
+            const button = card.querySelector('.select-coupon-btn');
+            if (button) {
+                const code = button.getAttribute('data-coupon-code');
+                const discount = parseFloat(button.getAttribute('data-discount-amount'));
+                if (code === selectedCode) {
+                    card.classList.add('border-primary');
+                    button.textContent = 'Đã chọn'; // Update button text
+                    button.disabled = false; // Ensure it's enabled if it was disabled
+                } else {
+                    card.classList.remove('border-primary');
+                    button.textContent = `Áp dụng (Giảm ${formatCurrency(discount)} đ)`; // Reset button text
+                    button.disabled = false; // Ensure other buttons are enabled
+                }
+            }
+        });
+    }
+
+
+    document.getElementById('removeCouponBtn').addEventListener('click', function() {
+        const couponCodeInput = document.getElementById('couponCode');
+        const removeCouponBtn = document.getElementById('removeCouponBtn');
+        const couponStatusDiv = document.getElementById('coupon-status');
+
+        couponCodeInput.value = '';
+        couponCodeInput.placeholder = 'Chưa chọn mã giảm giá';
+        removeCouponBtn.style.display = 'none';
+
+        couponStatusDiv.innerHTML = `
+             <div class="alert alert-info py-2 px-3 mb-0 small">
+                 <i class="fas fa-info-circle me-1"></i>
+                 Đã xóa mã giảm giá.
+             </div>
+         `;
+        setTimeout(() => { couponStatusDiv.innerHTML = ''; }, 3000);
+
+        // Reset selected coupon and discount
+        selectedCoupon = null;
+        document.getElementById('discountAmount').value = 0;
+        updateTotalAmount(); // Update total and hide discount row
+
+        // Remove visual selection from the modal cards
+        updateCouponCardSelection(null);
+    });
+
+
+    function validateForm() {
+        const form = document.getElementById('checkout-form');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            // Optionally focus the first invalid field
+            const firstInvalid = form.querySelector(':invalid');
+            if(firstInvalid) firstInvalid.focus();
+            return false;
+        }
+        // Add specific checks like address selection
+        if (!document.getElementById('province').value || !document.getElementById('district').value || !document.getElementById('ward').value) {
+            Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng chọn đầy đủ Tỉnh/Thành phố, Quận/Huyện, Phường/Xã.' });
+            // Try to focus the first empty select
+            if (!document.getElementById('province').value) document.getElementById('province').focus();
+            else if (!document.getElementById('district').value) document.getElementById('district').focus();
+            else if (!document.getElementById('ward').value) document.getElementById('ward').focus();
+            return false;
+        }
+
+        // Check if shipping fee was calculated (value > 0 or explicit text like 'Miễn phí')
+        const shippingFeeValue = parseFloat(document.getElementById('shippingFee').value);
+        const shippingFeeText = document.getElementById('shippingFeeDisplay').textContent;
+        // Allow 0 fee if it's explicitly calculated as 0 (e.g., free shipping) but not if it wasn't calculated yet
+        if (isNaN(shippingFeeValue) || (shippingFeeValue === 0 && shippingFeeText.includes('Chọn địa chỉ'))) {
+            Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Chưa tính được phí vận chuyển. Vui lòng kiểm tra lại địa chỉ.' });
+            document.getElementById('ward').focus(); // Focus last address element
+            return false;
+        }
+
+
+        return true;
+    }
+
+
+    function processVnPayPayment() {
+        if (!validateForm()) {
+            // SweetAlert already shown by validateForm
+            return;
+        }
+
+        Swal.fire({
+            title: 'Chuyển đến cổng thanh toán VNPAY?',
+            text: 'Bạn sẽ được chuyển đến cổng thanh toán VNPAY để hoàn tất giao dịch.',
+            icon: 'info', // Use info instead of question
+            showCancelButton: true,
+            confirmButtonText: 'Tiếp tục',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#0d6efd', // Bootstrap primary color
+            cancelButtonColor: '#6c757d'  // Bootstrap secondary color
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Gather data (ensure names are set)
+                const fullName = document.getElementById('fullName').value;
+                const phone = document.getElementById('phone').value;
+                const provinceName = document.getElementById('provinceName').value || document.getElementById('province').options[document.getElementById('province').selectedIndex]?.text || '';
+                const districtName = document.getElementById('districtName').value || document.getElementById('district').options[document.getElementById('district').selectedIndex]?.text || '';
+                const wardName = document.getElementById('wardName').value || document.getElementById('ward').options[document.getElementById('ward').selectedIndex]?.text || '';
+                const detailedAddress = document.getElementById('detailedAddress').value;
+
+                const shippingFee = parseFloat(document.getElementById('shippingFee').value) || 0;
+                const couponCode = document.getElementById('couponCode').value || '';
+                const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+                const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+
+                // Ensure essential names are present
+                if (!provinceName || !districtName || !wardName) {
+                    console.error("Address names missing!");
+                    Swal.fire('Lỗi', 'Không thể lấy tên địa chỉ. Vui lòng thử lại.', 'error');
+                    return;
+                }
+
+                const vnpayForm = document.createElement('form');
+                vnpayForm.method = 'post';
+                vnpayForm.action = '/vnpay/create-payment'; // Correct endpoint
+
+                const orderId = 'HD' + Date.now() + Math.floor(Math.random() * 100); // More unique
+
+                const params = {
+                    'orderId': orderId,
+                    'amount': totalAmount,
+                    'orderInfo': 'Thanh toan don hang ' + orderId,
+                    'fullName': fullName,
+                    'phone': phone,
+                    'provinceName': provinceName, // Send name
+                    'districtName': districtName, // Send name
+                    'wardName': wardName,         // Send name
+                    'detailedAddress': detailedAddress,
+                    'shippingFee': shippingFee,
+                    'couponCode': couponCode,
+                    'discountAmount': discountAmount,
+                    // Backend needs province/district/ward codes too for potential saving/GHN mapping
+                    'provinceCode': document.getElementById('province').value,
+                    'districtCode': document.getElementById('district').value,
+                    'wardCode': document.getElementById('ward').value,
+                };
+
+                for (const key in params) {
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = key;
+                    hiddenField.value = params[key];
+                    vnpayForm.appendChild(hiddenField);
+                }
+
+                document.body.appendChild(vnpayForm);
+                console.log("Submitting VNPAY form with params:", params);
+                vnpayForm.submit();
+            }
+        });
+    }
+
+    function submitNormalCheckout() {
+        const form = document.getElementById('checkout-form');
+
+        if (!validateForm()) {
+            // SweetAlert already shown
+            return;
+        }
+
+        form.action = '/checkout/place-order'; // Ensure action is correct
+
+        Swal.fire({
+            title: 'Xác nhận đặt hàng?',
+            text: 'Bạn có chắc chắn muốn đặt hàng với các thông tin đã cung cấp không?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đặt hàng',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#198754', // Bootstrap success color
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Ensure hidden names are set correctly before submitting
+                const provinceSelect = document.getElementById('province');
+                const districtSelect = document.getElementById('district');
+                const wardSelect = document.getElementById('ward');
+                document.getElementById('provinceName').value = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
+                document.getElementById('districtName').value = districtSelect.options[districtSelect.selectedIndex]?.text || '';
+                document.getElementById('wardName').value = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+
+                // Ensure coupon details are correctly set (selectedCoupon might be null if page reloaded)
+                document.getElementById('couponCode').value = selectedCoupon ? selectedCoupon.code : document.getElementById('couponCode').value; // Keep reloaded value if no active selection
+                document.getElementById('discountAmount').value = selectedCoupon ? selectedCoupon.discountAmount : (parseFloat(document.getElementById('discountAmount').value) || 0); // Keep reloaded value if no active selection
+
+                console.log("Submitting normal checkout form...");
+                // Disable button to prevent double submission
+                document.getElementById('place-order-btn').disabled = true;
+                document.getElementById('place-order-btn').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+
+                form.submit();
+            }
+        });
+    }
+
+
+    document.getElementById('checkout-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+        if (paymentMethod === 'VNPAY') {
+            processVnPayPayment();
+        } else {
+            // COD, VietQR etc.
+            submitNormalCheckout();
+        }
+    });
+
+</script>
+</body>
+</html>

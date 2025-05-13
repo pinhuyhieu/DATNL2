@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh Sách Hóa Đơn</title>
+    <!-- Liên kết CSS -->
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <link rel="stylesheet" th:href="@{/css/custom-sweetalert.css}">
+    <!-- Link đến file CSS chung cho admin -->
+    <link rel="stylesheet" href="/css/admin-crud.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        /* Style riêng cho trang hóa đơn */
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.4em 0.8em;
+            border-radius: 0.375rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-align: center;
+            min-width: 110px;
+            line-height: 1.2;
+            vertical-align: middle;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease-in-out, filter 0.2s ease-in-out;
+        }
+
+        /* Status badge colors */
+        .badge-pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-payment {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .badge-confirmed {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .badge-shipping {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .badge-delivered {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .badge-voided {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .badge-paid {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .badge-online-paid {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .badge-payment-failed {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .badge-default {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .badge:hover {
+            filter: brightness(1.1);
+            cursor: default;
+        }
+
+        /* Channel badge styles */
+        .channel-badge {
+            display: inline-block;
+            padding: 0.4em 0.8em;
+            border-radius: 0.375rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-align: center;
+            min-width: 90px;
+            color: #fff;
+        }
+        .channel-badge-website {
+            background-color: #17a2b8;
+        }
+        .channel-badge-pos {
+            background-color: #28a745;
+        }
+        .channel-badge-default {
+            background-color: #6c757d;
+        }
+
+        /* Các style đặc thù khác cho trang hóa đơn có thể được thêm ở đây */
+    </style>
+</head>
+<body>
+<!-- Chèn Sidebar -->
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<main>
+    <div class="container">
+        <!-- Tiêu đề trang -->
+        <div class="section-title">
+            <i class="fas fa-file-invoice"></i> Danh Sách Hóa Đơn
+        </div>
+
+        <!-- Thông báo lỗi (nếu có) -->
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- Panel Tìm kiếm và Lọc -->
+        <div class="search-filter-panel">
+            <form th:action="@{/admin/hoa-don/hien-thi}" method="get" class="filter-form">
+                <div class="form-row">
+                    <!-- Lọc theo Mã Hóa Đơn -->
+                    <div class="form-group">
+                        <label for="maHoaDon">Mã Hóa Đơn:</label>
+                        <input type="text" class="form-control" id="maHoaDon" name="maHoaDon" th:value="${maHoaDon}" placeholder="Nhập mã hóa đơn...">
+                    </div>
+                    <!-- Lọc theo Trạng Thái -->
+                    <div class="form-group">
+                        <label for="trangThai">Trạng Thái:</label>
+                        <select class="form-control" id="trangThai" name="trangThai">
+                            <option value="">-- Tất cả trạng thái --</option>
+                            <!-- Sử dụng biến trangThaiList từ controller nếu có, hoặc hardcode -->
+                            <option value="Chờ xác nhận" th:selected="${trangThai == 'Chờ xác nhận'}">Chờ xác nhận</option>
+                            <option value="Chờ thanh toán" th:selected="${trangThai == 'Chờ thanh toán'}">Chờ thanh toán</option>
+                            <option value="Đã xác nhận" th:selected="${trangThai == 'Đã xác nhận'}">Đã xác nhận</option>
+                            <option value="Đang giao hàng" th:selected="${trangThai == 'Đang giao hàng'}">Đang giao hàng</option>
+                            <option value="Đã giao hàng" th:selected="${trangThai == 'Đã giao hàng'}">Đã giao hàng</option>
+                            <option value="Đã hủy" th:selected="${trangThai == 'Đã hủy'}">Đã hủy</option>
+                            <option value="Đã thanh toán" th:selected="${trangThai == 'Đã thanh toán'}">Đã thanh toán</option>
+                            <option value="Đã thanh toán online" th:selected="${trangThai == 'Đã thanh toán online'}">Đã thanh toán online</option>
+                            <option value="Thanh toán thất bại" th:selected="${trangThai == 'Thanh toán thất bại'}">Thanh toán thất bại</option>
+                            <!-- Thêm các trạng thái khác nếu cần -->
+                        </select>
+                    </div>
+                    <!-- Lọc theo Kênh Bán Hàng -->
+                    <div class="form-group">
+                        <label for="kenhBanHang">Kênh Bán Hàng:</label>
+                        <select class="form-control" id="kenhBanHang" name="kenhBanHang">
+                            <option value="">-- Tất cả kênh --</option>
+                            <!-- Sử dụng biến kenhBanHangList từ controller nếu có, hoặc hardcode -->
+                            <option value="Website" th:selected="${kenhBanHang == 'Website'}">Website</option>
+                            <option value="POS" th:selected="${kenhBanHang == 'POS'}">POS</option>
+                            <!-- Thêm các kênh khác nếu cần -->
+                        </select>
+                    </div>
+                    <!-- Lọc theo Ngày Tạo Từ -->
+                    <div class="form-group">
+                        <label for="ngayTaoTu">Ngày Tạo Từ:</label>
+                        <input type="date" class="form-control" id="ngayTaoTu" name="ngayTaoTu" th:value="${ngayTaoTu}">
+                    </div>
+                    <!-- Lọc theo Ngày Tạo Đến -->
+                    <div class="form-group">
+                        <label for="ngayTaoDen">Ngày Tạo Đến:</label>
+                        <input type="date" class="form-control" id="ngayTaoDen" name="ngayTaoDen" th:value="${ngayTaoDen}">
+                    </div>
+                </div>
+                <!-- Nút Lọc và Bỏ Lọc -->
+                <div class="filter-actions">
+                    <button type="submit" class="apply-filter action-button">
+                        <i class="fas fa-filter"></i> Lọc
+                    </button>
+                    <a th:href="@{/admin/hoa-don/hien-thi}" class="reset-filter action-button">
+                        <i class="fas fa-undo"></i> Bỏ Lọc
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bảng hiển thị dữ liệu -->
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã Hóa Đơn</th>
+                    <th>Khách Hàng</th>
+                    <th>Ngày Tạo</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th>Kênh Bán Hàng</th>
+                    <th class="action-buttons">Hành Động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Lặp qua danh sách hóa đơn -->
+                <tr th:each="hoaDon, iterStat : ${hoaDonPage.content}">
+                    <td th:text="${hoaDon.hoaDonId}"></td>
+                    <td th:text="${hoaDon.maHoaDon}"></td>
+                    <!-- Hiển thị tên khách hàng hoặc 'Khách vãng lai' nếu null -->
+                    <td th:text="${hoaDon.khachHang != null ? hoaDon.khachHang.ten : 'Khách vãng lai'}"></td>
+                    <!-- Định dạng ngày tạo -->
+                    <td th:text="${hoaDon.ngayTaoHoaDon != null ? #temporals.format(hoaDon.ngayTaoHoaDon, 'dd-MM-yyyy HH:mm') : ''}"></td>
+                    <!-- Định dạng tổng tiền -->
+                    <td th:text="${totalPaymentList[iterStat.index] != null ? #numbers.formatDecimal(totalPaymentList[iterStat.index], 0, 'COMMA', 0, 'POINT') + ' VNĐ' : '0 VNĐ'}"></td>
+                    <!-- Hiển thị trạng thái bằng badge -->
+                    <td>
+                        <span class="badge" th:switch="${hoaDon.trangThai}" th:classappend="
+                                ${hoaDon.trangThai == 'Chờ xác nhận' ? 'badge-pending' :
+                                hoaDon.trangThai == 'Chờ thanh toán' ? 'badge-payment' :
+                                hoaDon.trangThai == 'Đã xác nhận' ? 'badge-confirmed' :
+                                hoaDon.trangThai == 'Đang giao hàng' ? 'badge-shipping' :
+                                hoaDon.trangThai == 'Đã giao hàng' ? 'badge-delivered' :
+                                hoaDon.trangThai == 'Đã hủy' ? 'badge-voided' :
+                                hoaDon.trangThai == 'Đã thanh toán' ? 'badge-paid' :
+                                hoaDon.trangThai == 'Đã thanh toán online' ? 'badge-online-paid' :
+                                hoaDon.trangThai == 'Thanh toán thất bại' ? 'badge-payment-failed' : 'badge-default'}"
+                              th:text="${hoaDon.trangThai != null ? hoaDon.trangThai : 'N/A'}">
+                            <!-- Nội dung text đã được đặt trong th:text -->
+                        </span>
+                    </td>
+                    <!-- Hiển thị kênh bán hàng bằng badge -->
+                    <td>
+                         <span class="channel-badge" th:classappend="
+                                ${hoaDon.kenhBanHang == 'Website' ? 'channel-badge-website' :
+                                (hoaDon.kenhBanHang == 'POS' ? 'channel-badge-pos' : 'channel-badge-default')}"
+                               th:text="${hoaDon.kenhBanHang != null ? hoaDon.kenhBanHang : 'N/A'}">
+                         </span>
+                    </td>
+                    <!-- Nút hành động -->
+                    <td class="action-buttons">
+                        <a th:href="@{/admin/hoa-don/detail/{id}(id=${hoaDon.hoaDonId})}"
+                           class="detail-button action-button" title="Xem chi tiết">
+                            <i class="fas fa-info-circle"></i> Chi tiết
+                        </a>
+                        <!-- Thêm các nút khác nếu cần (Sửa, Hủy,...) -->
+                        <!-- Ví dụ nút sửa:
+                        <a th:href="@{/admin/hoa-don/edit/{id}(id=${hoaDon.hoaDonId})}"
+                           class="edit-button action-button" title="Sửa hóa đơn">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        -->
+                    </td>
+                </tr>
+                <!-- Hiển thị khi không có dữ liệu -->
+                <tr th:if="${hoaDonPage.isEmpty()}">
+                    <td colspan="8" class="empty-state"> <!-- Cập nhật colspan cho đúng số cột -->
+                        <i class="far fa-folder-open"></i>
+                        <h3>Không tìm thấy hóa đơn nào</h3>
+                        <p>Không có hóa đơn nào phù hợp với tiêu chí lọc của bạn, hoặc chưa có hóa đơn nào được tạo.</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div class="pagination" th:if="${hoaDonPage != null and not hoaDonPage.isEmpty() and hoaDonPage.totalPages > 1}">
+            <!-- Nút Trang Trước -->
+            <a th:if="${hoaDonPage.hasPrevious()}"
+               th:href="@{/admin/hoa-don/hien-thi(page=${hoaDonPage.number - 1}, size=${hoaDonPage.size}, maHoaDon=${maHoaDon}, trangThai=${trangThai}, kenhBanHang=${kenhBanHang}, ngayTaoTu=${ngayTaoTu}, ngayTaoDen=${ngayTaoDen})}"
+               title="Trang trước">
+                « Previous
+            </a>
+            <span th:unless="${hoaDonPage.hasPrevious()}" class="disabled">« Previous</span>
+
+            <!-- Số trang hiện tại (có thể thêm các số trang lân cận nếu muốn phức tạp hơn) -->
+            <span class="current-page" th:text="${hoaDonPage.number + 1}"></span>
+
+            <!-- Nút Trang Sau -->
+            <a th:if="${hoaDonPage.hasNext()}"
+               th:href="@{/admin/hoa-don/hien-thi(page=${hoaDonPage.number + 1}, size=${hoaDonPage.size}, maHoaDon=${maHoaDon}, trangThai=${trangThai}, kenhBanHang=${kenhBanHang}, ngayTaoTu=${ngayTaoTu}, ngayTaoDen=${ngayTaoDen})}"
+               title="Trang sau">
+                Next »
+            </a>
+            <span th:unless="${hoaDonPage.hasNext()}" class="disabled">Next »</span>
+        </div>
+        <!-- Hiển thị thông tin trang -->
+        <div class="pagination-info" th:if="${hoaDonPage != null and not hoaDonPage.isEmpty()}" style="text-align: center; margin-top: 10px; color: #555;">
+            <span>Trang <strong th:text="${hoaDonPage.number + 1}"></strong>/<strong th:text="${hoaDonPage.totalPages}"></strong></span> |
+            <span>Tổng số: <strong th:text="${hoaDonPage.totalElements}"></strong> hóa đơn</span>
+        </div>
+    </div>
+</main>
+
+<!-- Liên kết JavaScript -->
+<script th:src="@{/js/menu.js}"></script> <!-- JS cho menu -->
+<script th:src="@{/js/sweetalert.js}"></script> <!-- JS cho SweetAlert nếu dùng -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- Hoặc CDN SweetAlert2 -->
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+/* resources/static/css/style.css */
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+
+/* CSS cho hiệu ứng hover */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.product-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e63946;
+}
+
+.old-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 8px;
+}
+
+.card-img-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-img-container img {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-img-container img {
+    transform: scale(1.1);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card:hover .overlay {
+    opacity: 1;
+}
+
+.overlay a {
+    color: white;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.overlay a:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.carousel-item {
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Ẩn thanh điều hướng carousel - ĐÃ THÊM ĐOẠN CSS NÀY */
+.carousel-control-prev,
+.carousel-control-next {
+    display: none;
+}

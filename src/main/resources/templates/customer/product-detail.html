@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sản Phẩm - Sunday Shoes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to your primary stylesheet -->
+    <link rel="stylesheet" href="/css/home.css">
+    <!-- SweetAlert2 CSS (Optional, often included via JS CDN) -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom CSS specific ONLY to Product Detail Page */
+        /* (Most styles should come from home.css or Bootstrap) */
+
+        /* Ẩn nút tăng/giảm trên Chrome, Safari, Edge */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Ẩn nút tăng/giảm trên Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .blog-post-container {
+            background-color: #fff; /* Use var(--light-color) if defined */
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px; /* Space above blog post */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .blog-post-content p {
+            line-height: 1.8;
+            color: var(--body-text-color); /* Relies on home.css */
+        }
+
+        /* --- Image Section Styles --- */
+        .thumbnail-img {
+            width: 100%;
+            height: 80px; /* Adjust if needed */
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease-in-out, transform 0.1s ease-in-out, opacity 0.2s;
+            opacity: 0.7;
+            border-radius: 4px; /* Subtle rounding */
+        }
+        .thumbnail-img:hover {
+            border-color: #ccc;
+            opacity: 1;
+        }
+        .thumbnail-img.active-thumbnail {
+            border-color: var(--primary-color); /* Relies on home.css */
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        #mainProductImage {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px; /* Match action card */
+            /* Consider adding a very light border for definition if needed */
+            /* border: 1px solid #eee; */
+        }
+
+        /* --- Product Info & Actions Section --- */
+        .product-actions {
+            background-color: var(--light-color); /* Use variable from home.css */
+            border-radius: 12px; /* Match cards from home.css */
+            padding: 1.5rem; /* Standard padding */
+            /* margin-top: 0; /* Removed default margin-top, spacing handled by parent col */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Softer shadow */
+            border: 1px solid #eee; /* Subtle border */
+            /* Height 100% might be needed if columns have different natural heights */
+            /* height: 100%; */
+        }
+
+        /* Style for the grouped info inside product-actions */
+        .product-actions .info-label {
+            color: var(--body-text-color); /* Consistent text color */
+            margin-bottom: 0.1rem; /* Tighten margin below label */
+            display: inline-block; /* Allows icon spacing */
+            min-width: 100px; /* Align values slightly */
+        }
+        .product-actions .info-value {
+            color: var(--dark-text-color); /* Darker for value */
+            font-weight: 500; /* Slightly bolder */
+        }
+        .product-actions .info-row p {
+            margin-bottom: 0.5rem; /* Space between info rows */
+        }
+        .product-actions .info-row i {
+            width: 20px; /* Ensure icons align */
+            text-align: center;
+            margin-right: 8px;
+            color: var(--primary-color); /* Icon color */
+        }
+
+
+        /* Option Buttons (Color/Size) */
+        .btn-outline-dark, .btn-outline-primary {
+            transition: all 0.2s ease-in-out; /* From home.css effectively */
+            margin-right: 0.5rem; /* Spacing between buttons */
+            margin-bottom: 0.5rem; /* Spacing below buttons */
+            min-width: 60px; /* Minimum button width */
+            text-align: center;
+        }
+        /* Active state for selection buttons */
+        .btn-outline-dark.active, .btn-outline-primary.active {
+            border-width: 2px;
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(var(--primary-color-rgb, 30, 58, 138), 0.3); /* Use RGB for opacity */
+        }
+        /* Specific Color Button Styles (Keep if different from default dark outline) */
+        .btn-outline-dark {
+            border-color: #ced4da;
+            color: #495057;
+        }
+        .btn-outline-dark:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+            color: #212529;
+        }
+        .btn-outline-dark.active {
+            background-color: var(--dark-gray); /* Use dark gray from home.css */
+            border-color: var(--dark-gray);
+            color: white;
+        }
+        /* Specific Size Button Active State (Base/Hover rely on home.css) */
+        .btn-outline-primary.active {
+            background-color: var(--primary-color);
+            color: var(--light-color);
+        }
+
+
+        /* Price */
+        #productPrice {
+            font-size: 1.8rem; /* Slightly larger */
+            font-weight: 700;
+            color: var(--secondary-color); /* Use secondary color for price */
+            display: inline-block; /* Allows vertical align */
+            /* padding: 0.5rem 0; */
+            min-width: 150px; /* Ensure space */
+            vertical-align: middle; /* Align with label */
+        }
+
+        /* Stock Status */
+        #stockStatus {
+            display: inline-block;
+            margin-left: 5px;
+            padding: 0.3rem 0.7rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            vertical-align: middle; /* Align with label */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        /* Status colors (Keep as specific) */
+        #stockStatus.status-in-stock { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        #stockStatus.status-reserved { background-color: #fff3cd; color: #664d03; border: 1px solid #ffecb5; }
+        #stockStatus.status-out-of-stock { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+        #stockStatus.status-loading { background-color: #e9ecef; color: #495057; border: 1px solid #dee2e6; }
+        #stockStatus.status-unavailable { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+
+
+        /* Quantity Input */
+        .quantity-selector .input-group {
+            max-width: 150px; /* Limit width */
+        }
+        .quantity-selector .form-control {
+            font-weight: bold;
+            text-align: center;
+            /* height: calc(1.5em + .75rem + 2px); Standard BS height */
+        }
+        .quantity-selector .btn-outline-secondary {
+            border-color: #ced4da;
+        }
+        .quantity-selector .btn-outline-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Add to Cart Button */
+        #addToCartButton {
+            /* Uses .btn-primary from home.css */
+            /* Ensure font-weight is sufficient */
+            font-weight: 600; /* Match other primary buttons */
+        }
+        /* Specific Disabled Style */
+        #addToCartButton:disabled {
+            background-color: #6c757d; /* Grey background */
+            border-color: #6c757d;
+            color: #fff; /* White text */
+            opacity: 0.65; /* Standard disabled opacity */
+            cursor: not-allowed !important;
+        }
+
+
+        /* Labels for sections (Color, Size, Price, etc.) */
+        .section-label {
+            font-weight: 600; /* Bolder labels */
+            margin-bottom: 0.75rem; /* Space below label */
+            display: block; /* Ensure it takes full width */
+            color: var(--dark-text-color); /* Darker label text */
+            font-size: 1rem; /* Standard size */
+        }
+        .section-label i {
+            margin-right: 8px;
+            color: var(--primary-color); /* Consistent icon color */
+            width: 20px; /* Align icons */
+            text-align: center;
+        }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 991.98px) {
+            /* Ensure right column still has some top padding if needed on large tablets */
+            /* .product-info-col { padding-top: 1rem; } */
+            .thumbnail-img {
+                height: 70px; /* Adjust thumbnail height */
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            /* Remove top padding added above, stack naturally */
+            .product-info-col {
+                padding-top: 0 !important;
+            }
+            /* Add space between stacked image col and info col */
+            .col-md-6:last-child {
+                margin-top: 2rem;
+            }
+            .thumbnail-img {
+                height: 60px;
+            }
+            #productPrice {
+                font-size: 1.6rem;
+            }
+            .product-actions {
+                padding: 1.25rem; /* Slightly less padding */
+            }
+            .blog-post-container {
+                padding: 20px;
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .thumbnail-img {
+                height: 55px;
+            }
+            /* Adjust column split for thumbnails/main image on very small screens */
+            .image-col-main { flex: 0 0 auto; width: 75%; } /* Main image takes more width */
+            .image-col-thumbs { flex: 0 0 auto; width: 25%; } /* Thumbs take less */
+
+            #addToCartButton {
+                font-size: 1rem; /* Adjust button font size */
+            }
+            .product-actions .info-row .col-md-6 {
+                width: 100%; /* Stack info items on mobile */
+                margin-bottom: 0.3rem; /* Small space between stacked items */
+            }
+            .product-actions .info-row p {
+                margin-bottom: 0.3rem; /* Reduce space further */
+            }
+            /* Center align option buttons */
+            .color-options div, #kichCoContainer {
+                text-align: center;
+            }
+            .btn-outline-dark, .btn-outline-primary {
+                margin-right: 0.3rem;
+                margin-left: 0.3rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Nhúng Header Fragment -->
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<div class="container mt-4 mb-5">
+    <!-- Main Row: Align items at the top -->
+    <div class="row align-items-start">
+
+        <!-- === Image Column === -->
+        <div class="col-md-6">
+            <!-- Nested Row for Thumbnails and Main Image -->
+            <div class="row g-2">
+                <!-- Thumbnail Column -->
+                <!-- Added image-col-thumbs for potential responsive control -->
+                <div class="col-3 col-sm-2 image-col-thumbs">
+                    <div class="thumbnail-list d-flex flex-column">
+                        <!-- Thumbnails -->
+                        <img th:each="hinhAnh, index : ${sanPham.hinhAnhs}"
+                             th:src="@{${hinhAnh.hinhAnhUrl}}"
+                             class="img-fluid mb-2 thumbnail-img"
+                             th:classappend="${index.index == 0} ? 'active-thumbnail'"
+                             th:alt="'Thumbnail ' + ${index.index + 1}"
+                             onclick="changeMainImage(this.src, this)">
+                        <!-- Fallback -->
+                        <img th:if="${#lists.isEmpty(sanPham.hinhAnhs)}"
+                             src="https://via.placeholder.com/100x120?text=No+Image"
+                             class="img-fluid mb-2 thumbnail-img active-thumbnail"
+                             alt="Placeholder thumbnail">
+                    </div>
+                </div>
+
+                <!-- Main Image Column -->
+                <!-- Added image-col-main for potential responsive control -->
+                <div class="col-9 col-sm-10 image-col-main text-center">
+                    <!-- Main Image -->
+                    <img id="mainProductImage"
+                         th:if="${not #lists.isEmpty(sanPham.hinhAnhs)}"
+                         th:src="@{${sanPham.hinhAnhs[0].hinhAnhUrl}}"
+                         class="img-fluid shadow-sm" alt="Hình ảnh sản phẩm chính">
+                    <!-- Fallback -->
+                    <img id="mainProductImage"
+                         th:if="${#lists.isEmpty(sanPham.hinhAnhs)}"
+                         src="https://via.placeholder.com/500x600?text=No+Image"
+                         class="img-fluid shadow-sm"
+                         alt="Placeholder main image">
+                </div>
+            </div> <!-- End Nested Row -->
+        </div> <!-- End Image Column -->
+
+        <!-- === Product Info & Actions Column === -->
+        <!-- Added product-info-col for specific styling/targeting -->
+        <div class="col-md-6 product-info-col">
+
+            <!-- Action Card: Contains Title, Info, Options, Price, Cart Button -->
+            <div class="product-actions">
+
+                <!-- Product Title (Moved Inside) -->
+                <h2 class="fw-bold mb-3 mt-0"> <!-- mt-0 removes default heading margin -->
+                    <span th:text="${sanPham.tenSanPham}">Product Name</span>
+                </h2>
+
+                <!-- Product Info Block (Moved Inside) -->
+                <div class="mb-3 info-row"> <!-- Add margin below info block -->
+                    <p class="mb-1">
+                        <i class="fas fa-barcode"></i>
+                        <span class="info-label">Mã SP:</span>
+                        <strong class="info-value" th:text="${sanPham.maSanPham}">SKU123</strong>
+                    </p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-list"></i><span class="info-label">Danh mục:</span> <strong class="info-value" th:text="${sanPham.danhMuc.tenDanhMuc}">Category</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-tags"></i><span class="info-label">Thương hiệu:</span> <strong class="info-value" th:text="${sanPham.thuongHieu.tenThuongHieu}">Brand</strong></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="fas fa-scroll"></i><span class="info-label">Chất liệu:</span> <strong class="info-value" th:text="${sanPham.chatLieu.tenChatLieu}">Material</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="fas fa-ruler-combined"></i><span class="info-label">Kiểu dáng:</span> <strong class="info-value" th:text="${sanPham.kieuDang.tenKieuDang}">Style</strong></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Divider (Optional) -->
+                <hr class="my-3">
+
+
+                <!-- Color Selection -->
+                <div class="mb-3 color-options"> <!-- Added class for potential targeting -->
+                    <label class="section-label"><i class="fas fa-palette"></i> Màu sắc:</label>
+                    <div>
+                        <button th:each="mauSac : ${mauSacList}"
+                                class="btn btn-outline-dark"
+                                th:data-id="${mauSac.mauSacId}"
+                                th:text="${mauSac.tenMauSac}"
+                                onclick="chonMauSac(this)"></button>
+                        <span th:if="${#lists.isEmpty(mauSacList)}" class="text-muted fst-italic">Không có màu sắc.</span>
+                    </div>
+                </div>
+
+                <!-- Size Selection -->
+                <div class="mb-3 size-options"> <!-- Added class for potential targeting -->
+                    <label class="section-label"><i class="fas fa-ruler"></i> Kích cỡ:</label>
+                    <div id="kichCoContainer">
+                        <span class="text-muted fst-italic">Chọn màu sắc để xem kích cỡ.</span>
+                    </div>
+                </div>
+
+                <!-- Price Display -->
+                <div class="mb-3 d-flex align-items-center"> <!-- Use flex to align label and price -->
+                    <label class="section-label mb-0 me-2"><i class="fas fa-dollar-sign"></i> Giá:</label>
+                    <span id="productPrice" class="fw-bold">N/A</span>
+                </div>
+
+                <!-- Stock Status -->
+                <div class="mb-3 d-flex align-items-center"> <!-- Use flex to align label and status -->
+                    <label class="section-label mb-0 me-2"><i class="fas fa-cubes"></i> Tình trạng:</label>
+                    <span id="stockStatus" class="status-loading">Đang kiểm tra...</span>
+                </div>
+
+                <!-- Quantity Selection -->
+                <div class="mb-4 quantity-selector">
+                    <label for="soLuong" class="section-label"><i class="fas fa-sort-numeric-up"></i> Số lượng:</label>
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary" type="button" onclick="thayDoiSoLuong(-1)"><i class="fas fa-minus"></i></button>
+                        <input type="number" id="soLuong" class="form-control text-center fw-bold" min="1" value="1" aria-label="Số lượng">
+                        <button class="btn btn-outline-secondary" type="button" onclick="thayDoiSoLuong(1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- Add to Cart Button -->
+                <button id="addToCartButton" class="btn btn-primary btn-lg w-100 fw-bold" onclick="themVaoGioHang()" disabled>
+                    <i class="fas fa-shopping-cart me-2"></i> Thêm vào giỏ hàng
+                </button>
+
+            </div> <!-- End product-actions -->
+
+        </div> <!-- End Product Info Column -->
+    </div> <!-- End Main Row -->
+
+    <!-- Blog Post Section -->
+    <div class="blog-post-container mt-5">
+        <h2 class="fw-bold text-center mb-4 section-title">Về Cửa Hàng Giày Nam Sunday Shoes</h2>
+        <div class="blog-post-content">
+            <!-- Blog content here -->
+            <p>
+                Chào mừng bạn đến với Sunday Shoes, điểm đến lý tưởng cho những quý ông tìm kiếm phong cách và chất lượng trong từng đôi giày.
+                Chúng tôi tự hào mang đến bộ sưu tập giày nam đa dạng, từ giày tây lịch lãm, giày sneakers năng động, đến giày loafers thời trang,
+                tất cả đều được chế tác tỉ mỉ từ chất liệu cao cấp, đảm bảo sự thoải mái và phong cách cho bạn trong mọi hoàn cảnh.
+            </p>
+            <p>
+                Tại Sunday Shoes, chúng tôi tin rằng một đôi giày tốt không chỉ là phụ kiện, mà còn là biểu tượng của phong cách và cá tính.
+                Đó là lý do tại sao chúng tôi luôn nỗ lực cập nhật những xu hướng mới nhất, đồng thời duy trì chất lượng vượt trội trong từng sản phẩm.
+                Với đội ngũ nhân viên tận tâm và không gian mua sắm thân thiện, Sunday Shoes cam kết mang đến cho bạn trải nghiệm mua sắm tuyệt vời nhất.
+            </p>
+            <p>
+                Hãy khám phá bộ sưu tập giày nam đa dạng của Sunday Shoes và tìm cho mình đôi giày ưng ý nhất, thể hiện phong cách và đẳng cấp của bạn.
+                Chúng tôi luôn sẵn sàng đồng hành cùng bạn trên hành trình chinh phục phong cách thời trang nam!
+            </p>
+        </div>
+    </div> <!-- End Blog Post Section -->
+
+</div> <!-- End Container -->
+
+<!-- Nhúng Footer Fragment -->
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Link to your JS (or include inline script) -->
+<script th:inline="javascript">
+    // --- Global Variables ---
+    let selectedMauSacId = /*[[${defaultMauSacId}]]*/ null;
+    let sanPhamId = /*[[${sanPham.sanPhamId}]]*/ null;
+    let selectedKichCoButton = null; // The currently selected size button element
+    let currentChiTietSanPhamId = null; // Store the ID of the selected variant
+
+    // --- Helper Functions ---
+    function formatCurrency(amount) {
+        if (amount === null || amount === undefined || isNaN(amount)) {
+            return 'N/A';
+        }
+        const numericAmount = Number(amount);
+        if (isNaN(numericAmount)) { return 'N/A'; }
+        const formatter = new Intl.NumberFormat('vi-VN', {
+            style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0
+        });
+        return formatter.format(numericAmount);
+    }
+
+    function updateStockStatusUI(physicalStock, availableStock) {
+        const stockStatusElement = document.getElementById("stockStatus");
+        const addToCartButton = document.getElementById("addToCartButton");
+        let statusText = "Đang kiểm tra...";
+        let isButtonDisabled = true;
+        let statusClass = 'status-loading';
+
+        stockStatusElement.classList.remove('status-in-stock', 'status-reserved', 'status-out-of-stock', 'status-loading', 'status-unavailable');
+
+        if (physicalStock === null || availableStock === null || isNaN(physicalStock) || isNaN(availableStock)) { // Added NaN checks
+            statusText = "Không xác định";
+            statusClass = 'status-unavailable';
+            isButtonDisabled = true;
+        } else if (physicalStock <= 0) {
+            statusText = "Hết hàng";
+            statusClass = 'status-out-of-stock';
+            isButtonDisabled = true;
+        } else if (availableStock <= 0) {
+            statusText = "Tạm hết hàng";
+            statusClass = 'status-reserved';
+            isButtonDisabled = true;
+        } else {
+            statusText = `Còn ${availableStock} sản phẩm khả dụng`; // Simplified text
+            statusClass = 'status-in-stock';
+            isButtonDisabled = false;
+        }
+
+        stockStatusElement.textContent = statusText;
+        stockStatusElement.classList.add(statusClass);
+        // Only enable the button if stock is available AND a size is selected
+        addToCartButton.disabled = isButtonDisabled || !selectedKichCoButton;
+    }
+
+
+    // --- Event Handlers & Logic ---
+
+    function changeMainImage(imageUrl, clickedThumbnail) {
+        const mainImage = document.getElementById("mainProductImage");
+        if(mainImage) { // Check if element exists
+            mainImage.src = imageUrl;
+        }
+        document.querySelectorAll(".thumbnail-img").forEach(thumb => {
+            thumb.classList.remove("active-thumbnail");
+        });
+        if(clickedThumbnail) { // Check if element exists
+            clickedThumbnail.classList.add("active-thumbnail");
+        }
+    }
+
+    function chonMauSac(button) {
+        if (!button) return; // Safety check
+
+        // Reset previous selections
+        document.querySelectorAll(".color-options .btn-outline-dark").forEach(btn => btn.classList.remove("active"));
+        if (selectedKichCoButton) {
+            selectedKichCoButton.classList.remove("active");
+            selectedKichCoButton = null;
+        }
+        currentChiTietSanPhamId = null;
+
+        // Set new selection
+        selectedMauSacId = button.getAttribute("data-id");
+        button.classList.add("active");
+
+        // Reset UI elements to loading/default state
+        document.getElementById("productPrice").textContent = 'N/A';
+        updateStockStatusUI(null, null); // Show loading/unavailable status
+        document.getElementById("kichCoContainer").innerHTML = '<p class="text-muted fst-italic mb-0">Đang tải kích cỡ...</p>'; // Show loading
+        document.getElementById("addToCartButton").disabled = true; // Disable button
+
+        // Fetch sizes for the new color
+        fetchKichCo();
+    }
+
+    function fetchKichCo() {
+        let container = document.getElementById("kichCoContainer");
+        let addToCartButton = document.getElementById("addToCartButton");
+        // Keep loading message, ensure button disabled
+        addToCartButton.disabled = true;
+
+        fetch(`/api/kich-co?sanPhamId=${sanPhamId}&mauSacId=${selectedMauSacId}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || `Lỗi ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                container.innerHTML = ""; // Clear loading message
+                if (data && data.length > 0) {
+                    data.forEach(kichCo => {
+                        let btn = document.createElement("button");
+                        btn.classList.add("btn", "btn-outline-primary"); // Rely on CSS for spacing
+                        btn.setAttribute("data-id", kichCo.id);
+                        btn.setAttribute("data-price", kichCo.giaBan);
+                        // Ensure stock values are numbers or null/NaN before setting attribute
+                        const availableStock = kichCo.availableStock !== null && !isNaN(kichCo.availableStock) ? parseInt(kichCo.availableStock) : null;
+                        const physicalStock = kichCo.physicalStock !== null && !isNaN(kichCo.physicalStock) ? parseInt(kichCo.physicalStock) : null;
+                        btn.setAttribute("data-available-stock", availableStock ?? 'null'); // Store 'null' string if null
+                        btn.setAttribute("data-physical-stock", physicalStock ?? 'null'); // Store 'null' string if null
+                        btn.textContent = kichCo.tenKichCo;
+                        btn.onclick = function () { chonKichCo(this); };
+                        container.appendChild(btn);
+                    });
+                    // Automatically select the first size after loading
+                    chonKichCoDauTien();
+                } else {
+                    container.innerHTML = "<p class='text-danger fw-medium mb-0'>Hết hàng cho màu này.</p>"; // Adjusted message
+                    document.getElementById("productPrice").textContent = 'N/A';
+                    updateStockStatusUI(null, null); // Set unavailable state
+                    addToCartButton.disabled = true;
+                    selectedKichCoButton = null;
+                    currentChiTietSanPhamId = null;
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi khi fetch kích cỡ:", error);
+                container.innerHTML = `<p class='text-danger fw-medium mb-0'>Lỗi: ${error.message || 'Không thể tải kích cỡ.'}</p>`;
+                document.getElementById("productPrice").textContent = 'N/A';
+                updateStockStatusUI(null, null);
+                addToCartButton.disabled = true;
+                selectedKichCoButton = null;
+                currentChiTietSanPhamId = null;
+            });
+    }
+
+    function chonKichCo(button) {
+        if (!button) return; // Safety check
+
+        // Deactivate previous button
+        if (selectedKichCoButton) {
+            selectedKichCoButton.classList.remove("active");
+        }
+        // Activate new button
+        button.classList.add("active");
+        selectedKichCoButton = button;
+
+        // Get data from the selected button's attributes
+        currentChiTietSanPhamId = button.getAttribute("data-id");
+        let price = button.getAttribute("data-price");
+        // Parse stock values, handling potential "null" strings or actual nulls
+        let availableStockStr = button.getAttribute("data-available-stock");
+        let physicalStockStr = button.getAttribute("data-physical-stock");
+        // Convert 'null' string back to null, then parse
+        let availableStock = (availableStockStr === null || availableStockStr === 'null') ? null : parseInt(availableStockStr);
+        let physicalStock = (physicalStockStr === null || physicalStockStr === 'null') ? null : parseInt(physicalStockStr);
+
+
+        // Update UI
+        document.getElementById("productPrice").textContent = formatCurrency(price);
+        updateStockStatusUI(physicalStock, availableStock); // Update status and button state based on stock AND size selection
+    }
+
+    function chonKichCoDauTien() {
+        let kichCoButtons = document.querySelectorAll("#kichCoContainer .btn-outline-primary");
+        if (kichCoButtons.length > 0) {
+            chonKichCo(kichCoButtons[0]); // Select the first button
+        } else {
+            // Handled by fetchKichCo 'else' block or 'catch' block
+            console.warn("chonKichCoDauTien called but no size buttons found.");
+            // Ensure UI is in a consistent state if this somehow gets called without buttons
+            document.getElementById("productPrice").textContent = 'N/A';
+            updateStockStatusUI(null, null);
+            document.getElementById("addToCartButton").disabled = true;
+            currentChiTietSanPhamId = null;
+            selectedKichCoButton = null;
+        }
+    }
+
+    function thayDoiSoLuong(amount) {
+        let soLuongInput = document.getElementById("soLuong");
+        let value = parseInt(soLuongInput.value) || 1; // Default to 1
+        value = Math.max(1, value + amount); // Ensure quantity is at least 1
+        soLuongInput.value = value;
+
+        // Optional: Check against available stock immediately
+        if (selectedKichCoButton) {
+            let availableStockStr = selectedKichCoButton.getAttribute("data-available-stock");
+            let availableStock = (availableStockStr === null || availableStockStr === 'null') ? null : parseInt(availableStockStr);
+            if (availableStock !== null && value > availableStock) {
+                soLuongInput.value = availableStock; // Cap at available stock
+                // Maybe show a small temporary message near the input?
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: `Chỉ còn ${availableStock} sản phẩm`,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            }
+        }
+    }
+
+    function themVaoGioHang() {
+        const addToCartButton = document.getElementById("addToCartButton");
+
+        // Re-validate conditions before proceeding
+        if (addToCartButton.disabled || !selectedKichCoButton || !currentChiTietSanPhamId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Chưa chọn đủ thông tin',
+                text: 'Vui lòng chọn Màu sắc, Kích cỡ và đảm bảo sản phẩm còn hàng.',
+            });
+            return;
+        }
+
+        let idsanphamchitiet = currentChiTietSanPhamId;
+        let soLuongInput = document.getElementById("soLuong");
+        let soLuong = parseInt(soLuongInput.value);
+
+        // Final validation on quantity and stock before API call
+        if (isNaN(soLuong) || soLuong < 1) {
+            Swal.fire({ icon: 'warning', title: 'Số lượng không hợp lệ', text: 'Vui lòng nhập số lượng lớn hơn 0.' });
+            soLuongInput.value = 1;
+            return;
+        }
+
+        let availableStockStr = selectedKichCoButton.getAttribute("data-available-stock");
+        let availableStock = (availableStockStr === null || availableStockStr === 'null') ? null : parseInt(availableStockStr);
+
+        if (availableStock === null || isNaN(availableStock) || soLuong > availableStock) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Số lượng vượt quá tồn kho',
+                text: `Hiện chỉ còn ${availableStock ?? 0} sản phẩm có sẵn. Vui lòng điều chỉnh số lượng.`,
+            });
+            // Optionally reset quantity input to max available
+            if (availableStock !== null && !isNaN(availableStock)) {
+                soLuongInput.value = Math.max(1, availableStock);
+            }
+            return; // Stop the process
+        }
+
+
+        // --- Proceed with API Call ---
+        addToCartButton.disabled = true;
+        addToCartButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang thêm...';
+
+        fetch("/api/gio-hang/them", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: idsanphamchitiet, number: soLuong })
+        })
+            .then(async response => {
+                const responseBody = await response.text(); // Read body once
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return Promise.reject({ type: 'Unauthorized', message: 'Chưa đăng nhập' });
+                } else if (!response.ok) {
+                    // Try parsing as JSON first for structured error messages
+                    try {
+                        const errorJson = JSON.parse(responseBody);
+                        throw new Error(errorJson.message || errorJson.error || responseBody || `Lỗi ${response.status}`);
+                    } catch (e) {
+                        // If not JSON, use the raw text body
+                        throw new Error(responseBody || `Lỗi ${response.status}`);
+                    }
+                }
+                return responseBody; // Success message (plain text)
+            })
+            .then(message => {
+                let successIcon = 'success';
+                let successTitle = message.includes("cập nhật") ? 'Đã cập nhật giỏ hàng' : 'Thêm thành công!';
+
+                Swal.fire({
+                    icon: successIcon,
+                    title: successTitle,
+                    text: message, // Use the plain text success message
+                    timer: 1800,
+                    showConfirmButton: false,
+                    timerProgressBar: true
+                }).then(() => {
+                    // TODO: Implement dynamic cart count update instead of reload
+                    window.location.reload(); // Simple reload for now
+                });
+            })
+            .catch(error => {
+                if (error.type !== 'Unauthorized') { // Don't show alert for redirect
+                    console.error("Lỗi thêm vào giỏ hàng:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: error.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.',
+                    });
+                }
+                // Restore button text REGARDLESS of reload, in case reload fails or is removed later
+                addToCartButton.innerHTML = '<i class="fas fa-shopping-cart me-2"></i> Thêm vào giỏ hàng';
+                // Re-evaluate button state based on current selection AFTER error popup
+                updateStockStatusUI(
+                    selectedKichCoButton ? parseInt(selectedKichCoButton.getAttribute("data-physical-stock") ?? NaN) : NaN,
+                    selectedKichCoButton ? parseInt(selectedKichCoButton.getAttribute("data-available-stock") ?? NaN) : NaN
+                );
+            });
+    }
+
+
+    // --- Initialization ---
+    document.addEventListener("DOMContentLoaded", function() {
+        // Define RGB version of primary color for CSS variable fallback
+        document.documentElement.style.setProperty('--primary-color-rgb', '30, 58, 138'); // Assuming #1e3a8a
+
+        let mauSacButtons = document.querySelectorAll(".color-options .btn-outline-dark");
+
+        // Initial UI State
+        document.getElementById("productPrice").textContent = 'N/A';
+        updateStockStatusUI(null, null); // Show initial loading/unavailable state
+        document.getElementById("addToCartButton").disabled = true; // Start disabled
+
+        // Determine which color to select initially
+        let buttonToSelect = null;
+        if (selectedMauSacId) {
+            buttonToSelect = document.querySelector(`.color-options .btn-outline-dark[data-id='${selectedMauSacId}']`);
+        }
+        // If default ID not found or not provided, select the first button if available
+        if (!buttonToSelect && mauSacButtons.length > 0) {
+            buttonToSelect = mauSacButtons[0];
+        }
+
+        // Trigger selection process
+        if (buttonToSelect) {
+            chonMauSac(buttonToSelect); // This handles activating the button and fetching sizes
+        } else {
+            // No color options available at all
+            console.warn("No color options found for this product.");
+            document.getElementById("kichCoContainer").innerHTML = "<p class='text-danger fw-medium mb-0'>Sản phẩm không có màu sắc.</p>";
+            updateStockStatusUI(null, null); // Ensure status reflects no options
+            document.getElementById("addToCartButton").disabled = true;
+        }
+
+        // Ensure first thumbnail is active (Thymeleaf should handle this, but double-check)
+        const firstThumb = document.querySelector(".thumbnail-list .thumbnail-img");
+        if(firstThumb && !firstThumb.classList.contains('active-thumbnail')) {
+            // Deactivate others just in case
+            document.querySelectorAll(".thumbnail-list .thumbnail-img.active-thumbnail").forEach(th => th.classList.remove('active-thumbnail'));
+            firstThumb.classList.add('active-thumbnail');
+        }
+    });
+</script>
+
+</body>
+</html>

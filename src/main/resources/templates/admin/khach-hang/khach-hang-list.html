@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Khách Hàng</title>
+    <link rel="stylesheet" href="/css/menu.css">
+    <link rel="stylesheet" href="/css/custom-sweetalert.css">
+    <!-- Link đến file CSS chung cho admin -->
+    <link rel="stylesheet" href="/css/admin-crud.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link th:href="@{/icons/users.png}" rel="icon" type="image/png">
+    <style>
+        /* Style riêng cho nút bỏ lọc */
+        .filter-actions .cancel-button {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            height: auto;
+            min-width: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .filter-actions .cancel-button i {
+            font-size: 0.9em;
+        }
+
+        /* Style cho các nút thao tác */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .action-buttons .action-button {
+            white-space: nowrap;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-width: auto;
+            height: auto;
+        }
+
+        .action-buttons .action-button i {
+            font-size: 0.9em;
+        }
+
+        /* Đảm bảo cột thao tác đủ rộng */
+        .styled-table th:last-child,
+        .styled-table td:last-child {
+            min-width: 180px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<main>
+    <div class="container">
+        <!-- Tiêu đề trang -->
+        <div class="section-title">
+            <i class="fas fa-users"></i>
+            <h1>Quản lý Khách Hàng</h1>
+        </div>
+
+        <!-- Panel Tìm kiếm và Lọc -->
+        <div class="search-filter-panel">
+            <form th:action="@{/admin/khach-hang/hien-thi}" method="get" class="filter-form">
+                <div class="search-bar">
+                    <input type="text" name="keyword" th:value="${keyword}" 
+                           placeholder="Tìm theo mã, tên, email hoặc số điện thoại...">
+                    <button type="submit">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                </div>
+
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label for="trangThai">Trạng thái:</label>
+                        <select id="trangThai" name="trangThai">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Hoạt động" th:selected="${trangThai == 'Hoạt động'}">Hoạt động</option>
+                            <option value="Bị khóa" th:selected="${trangThai == 'Bị khóa'}">Bị khóa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <a th:href="@{/admin/khach-hang/hien-thi}" class="cancel-button">
+                        <i class="fas fa-times"></i> Bỏ lọc
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bảng hiển thị -->
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã KH</th>
+                    <th>Tên Khách Hàng</th>
+                    <th>Email</th>
+                    <th>Số Điện Thoại</th>
+                    <th>Trạng Thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="khachHang : ${khachHangPage.content}">
+                    <td th:text="${khachHang.khachHangId}"></td>
+                    <td th:text="${khachHang.maKhachHang}"></td>
+                    <td th:text="${khachHang.ten}"></td>
+                    <td th:text="${khachHang.email}"></td>
+                    <td th:text="${khachHang.soDienThoai}"></td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${khachHang.trangThai == 'Hoạt động' ? 'status-active' : 'status-inactive'}"
+                              th:text="${khachHang.trangThai}"></span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/admin/khach-hang/detail/{id}(id=${khachHang.khachHangId})}"
+                               class="action-button edit-button" title="Xem chi tiết">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </a>
+                            <button type="button" 
+                                    class="action-button"
+                                    th:classappend="${khachHang.trangThai == 'Hoạt động' ? 'status-inactive-button' : 'status-active-button'}"
+                                    th:onclick="'toggleStatus(' + ${khachHang.khachHangId} + ')'"
+                                    th:title="${khachHang.trangThai == 'Hoạt động' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}">
+                                <i class="fas" th:classappend="${khachHang.trangThai == 'Hoạt động' ? 'fa-lock' : 'fa-unlock'}"></i>
+                                <span th:text="${khachHang.trangThai == 'Hoạt động' ? 'Khóa' : 'Mở khóa'}"></span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${khachHangPage.content.isEmpty()}">
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <h3>Không tìm thấy khách hàng</h3>
+                        <p>Không có khách hàng nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div class="pagination" th:if="${khachHangPage != null and not khachHangPage.isEmpty() and khachHangPage.totalPages > 1}">
+            <!-- Nút Trang Trước -->
+            <a th:if="${khachHangPage.hasPrevious()}"
+               th:href="@{/admin/khach-hang/hien-thi(page=${khachHangPage.number - 1}, size=${khachHangPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
+               title="Trang trước">
+                « Previous
+            </a>
+            <span th:unless="${khachHangPage.hasPrevious()}" class="disabled">« Previous</span>
+
+            <!-- Số trang hiện tại -->
+            <span class="current-page" th:text="${khachHangPage.number + 1}"></span>
+
+            <!-- Nút Trang Sau -->
+            <a th:if="${khachHangPage.hasNext()}"
+               th:href="@{/admin/khach-hang/hien-thi(page=${khachHangPage.number + 1}, size=${khachHangPage.size}, keyword=${keyword}, trangThai=${trangThai})}"
+               title="Trang sau">
+                Next »
+            </a>
+            <span th:unless="${khachHangPage.hasNext()}" class="disabled">Next »</span>
+        </div>
+
+        <!-- Thông tin phân trang -->
+        <div class="pagination-info" th:if="${khachHangPage != null and not khachHangPage.isEmpty()}" 
+             style="text-align: center; margin-top: 10px; color: #555;">
+            <span>Trang <strong th:text="${khachHangPage.number + 1}"></strong>/<strong th:text="${khachHangPage.totalPages}"></strong></span> |
+            <span>Tổng số: <strong th:text="${khachHangPage.totalElements}"></strong> khách hàng</span>
+        </div>
+    </div>
+</main>
+
+<script th:inline="javascript">
+    function toggleStatus(khachHangId) {
+        const currentStatus = event.target.closest('button').querySelector('i').classList.contains('fa-lock') ? 'Hoạt động' : 'Bị khóa';
+        const actionText = currentStatus === 'Hoạt động' ? 'khóa' : 'mở khóa';
+        
+        Swal.fire({
+            title: 'Xác nhận thay đổi trạng thái?',
+            text: `Bạn có chắc chắn muốn ${actionText} tài khoản khách hàng này?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Xác nhận!',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Hiển thị loading spinner
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                fetch(`/admin/khach-hang/toggle-status/${khachHangId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: data,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Có lỗi xảy ra khi cập nhật trạng thái.',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+<script src="/js/menu.js"></script>
+<script src="/js/sweetalert.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lịch sử đơn hàng - Sunday Shoes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .order-history-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .order-table th, .order-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .order-table th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #343a40;
+        }
+        .order-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .order-id {
+            font-weight: 500;
+            color: #007bff;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #fff;
+        }
+        .status-pending { background-color: #fd7e14; } /* Chờ xác nhận */
+        .status-confirmed { background-color: #007bff; } /* Đã xác nhận */
+        .status-shipping { background-color: #ffc107; } /* Đang giao hàng */
+        .status-delivered { background-color: #28a745; } /* Đã giao hàng */
+        .status-cancelled { background-color: #dc3545; } /* Đã hủy */
+        .status-online-paid { background-color: #20c997; } /* Đã thanh toán online */
+
+        .status-badge i {
+            margin-right: 5px;
+        }
+        .no-orders {
+            text-align: center;
+            padding: 40px 0;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .pagination-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .pagination .page-link {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<div class="container order-history-container mt-4">
+    <h1 class="mb-5 text-center"><i class="fas fa-history me-2"></i>Lịch sử đơn hàng</h1>
+
+    <div th:if="${orderPage.isEmpty()}">
+        <p class="no-orders"><i class="fas fa-box-open me-2"></i>Bạn chưa có đơn hàng nào.</p>
+    </div>
+
+    <div th:unless="${orderPage.isEmpty()}">
+        <table class="order-table">
+            <thead>
+            <tr>
+                <th>Mã đơn hàng</th>
+                <th>Ngày đặt hàng</th>
+                <th>Ngày giao hàng thành công</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th>Chi tiết</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order, stat : ${orderPage.content}">
+                <td class="order-id" th:text="${order.maHoaDon}"></td>
+                <td th:text="${#temporals.format(order.ngayTaoHoaDon, 'dd-MM-yyyy HH:mm')}"></td>
+                <td th:text="${order.ngayBan != null ? #temporals.format(order.ngayBan, 'dd-MM-yyyy HH:mm') : 'Chưa giao hàng'}"></td>
+                <td th:text="${totalPaymentList[stat.index] != null ? #numbers.formatDecimal(totalPaymentList[stat.index], 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}"></td>
+                <td>
+                    <span class="status-badge"
+                          th:classappend="${order.trangThai == 'Chờ xác nhận' ? 'status-pending' :
+                      order.trangThai == 'Đã xác nhận' ? 'status-confirmed' :
+                      order.trangThai == 'Đang giao hàng' ? 'status-shipping' :
+                      order.trangThai == 'Đã giao hàng' ? 'status-delivered' :
+                      order.trangThai == 'Đã hủy' ? 'status-cancelled' :
+                      order.trangThai == 'Đã thanh toán online' ? 'status-online-paid' : ''}">
+
+                        <i th:class="${order.trangThai == 'Chờ xác nhận' ? 'fas fa-clock' :
+              order.trangThai == 'Đã xác nhận' ? 'fas fa-check' :
+              order.trangThai == 'Đang giao hàng' ? 'fas fa-truck' :
+              order.trangThai == 'Đã giao hàng' ? 'fas fa-box' :
+              order.trangThai == 'Đã hủy' ? 'fas fa-times' :
+              order.trangThai == 'Đã thanh toán online' ? 'fas fa-credit-card' : ''}"></i>
+
+                        <span th:text="${order.trangThai}"></span>
+                    </span>
+                </td>
+                <td>
+                    <a th:href="@{/order-detail/{id}(id=${order.hoaDonId})}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>Xem chi tiết
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Phân trang -->
+        <div class="pagination-container" th:if="${totalPages > 1}">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/order-history(page=${currentPage - 1}, size=5)}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${i == currentPage ? 'active' : ''}">
+                        <a class="page-link" th:href="@{/order-history(page=${i}, size=5)}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/order-history(page=${currentPage + 1}, size=5)}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

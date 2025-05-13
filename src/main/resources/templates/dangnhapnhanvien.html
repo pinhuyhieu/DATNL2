@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Nhân Viên</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Reset and Body */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Updated gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container and Form */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 900px; /* Optional: limit max width */
+        }
+
+        .login-box {
+            background-color: #fff;
+            padding: 50px 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px; /* Max width for the form box */
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            height: 3px;
+            width: 60px;
+            background: linear-gradient(to right, #6a11cb, #2575fc); /* Matches body gradient */
+            border-radius: 1.5px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px 12px 45px; /* Left padding for icon */
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #2575fc; /* Focus color */
+            outline: none;
+            box-shadow: 0 0 8px rgba(37, 117, 252, 0.3);
+        }
+
+        /* Button */
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(to right, #5d0fad, #1a5bcc); /* Darker on hover */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-login i {
+            margin-right: 8px;
+        }
+
+        /* Footer Links */
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .footer-links a {
+            color: #2575fc; /* Link color */
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #6a11cb; /* Hover color */
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-box">
+        <h2>
+            <i class="fas fa-user-lock"></i> Đăng Nhập Nhân Viên
+        </h2>
+        <form action="/nhanvien/login" method="post">
+            <div class="form-group">
+                <i class="fas fa-phone"></i>
+                <input type="text" id="soDienThoai" name="soDienThoai" placeholder="Số Điện Thoại" required>
+            </div>
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" name="password" placeholder="Mật Khẩu" required>
+            </div>
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Đăng Nhập
+            </button>
+        </form>
+        <div class="footer-links">
+            <p>Chưa có tài khoản? <a href="/nhanvien/register"><i class="fas fa-user-plus"></i> Đăng ký ngay</a></p>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /* Check for SweetAlert messages */
+    window.onload = function() {
+        // Check for login error message
+        const errorMessage = [[${errorMessage}]];
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi Đăng Nhập',
+                text: errorMessage,
+                confirmButtonText: 'Đóng'
+            });
+        }
+
+        // Check for registration success message (passed via RedirectAttributes)
+        // Note: This message comes from the redirect after successful registration
+        const successMessage = [[${message}]]; // 'message' is the flash attribute name
+        if (successMessage && successMessage === 'Đăng ký thành công') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Đăng ký thành công!',
+                text: 'Bạn đã đăng ký thành công. Vui lòng đăng nhập.',
+                confirmButtonText: 'Đóng'
+            });
+        }
+    };
+</script>
+
+</body>
+</html>

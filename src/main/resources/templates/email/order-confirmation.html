@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đơn hàng của bạn - Sunday Store</title>
+    <style>
+        /* Basic CSS for better email client compatibility */
+        body { margin: 0; padding: 0; }
+        table, td, tr { vertical-align: top; border-collapse: collapse; }
+        * { line-height: inherit; }
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+        }
+    </style>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px;">
+
+<table role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+    <tr>
+        <td style="padding: 30px;">
+
+            <!-- Header Area (Placeholder for Logo/Brand Name) -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #d83a7d; font-size: 28px; margin: 0; font-weight: bold;">Sunday Store</h1>
+                <!-- <img src="[Your Logo URL]" alt="Sunday Store Logo" style="max-width: 150px; height: auto; display: inline-block;"> -->
+            </div>
+
+            <!-- Main Content Area -->
+            <h2 style="color: #e91e63; text-align: center; margin-top: 0; margin-bottom: 30px; font-size: 24px;">🎉 Đặt hàng thành công!</h2>
+
+            <p style="font-size: 16px; color: #333; margin-bottom: 15px;">Chào <strong th:text="${tenKhachHang}">[Tên Khách Hàng]</strong>,</p>
+
+            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">Cảm ơn bạn đã đặt hàng tại <strong>Sunday Store</strong>! Đơn hàng của bạn đã được xác nhận thành công.</p>
+
+            <p style="font-size: 15px; color: #555; margin-bottom: 15px;">Dưới đây là chi tiết đơn hàng của bạn:</p>
+
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 6px; margin-bottom: 30px;">
+                <ul style="font-size: 15px; line-height: 1.8; list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 10px;"><strong>👤 Tên người nhận:</strong> <span style="color: #333;" th:text="${tenNguoiNhan}">[Tên Người Nhận]</span></li>
+                    <li style="margin-bottom: 10px;"><strong>📞 Số điện thoại:</strong> <span style="color: #333;" th:text="${soDienThoaiNguoiNhan}">[Số Điện Thoại người nhận]</span></li>
+                    <li style="margin-bottom: 10px;"><strong>🏠 Địa chỉ:</strong> <span style="color: #333;" th:text="${diaChi}">[Địa Chỉ]</span></li>
+                    <li><strong>💳 Thanh toán:</strong> <span style="color: #333;" th:text="${phuongThucThanhToan}">[Phương Thức Thanh Toán]</span></li>
+                </ul>
+            </div>
+
+            <!-- You might want to add product list here -->
+            <!-- Example:
+            <h3 style="color: #e91e63; font-size: 18px; margin-bottom: 15px;">Sản phẩm đã đặt:</h3>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding: 8px; border-bottom: 1px solid #eee; color: #555;">Sản phẩm</th>
+                        <th style="text-align: right; padding: 8px; border-bottom: 1px solid #eee; color: #555;">Số lượng</th>
+                        <th style="text-align: right; padding: 8px; border-bottom: 1px solid #eee; color: #555;">Đơn giá</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${items}">
+                        <td style="padding: 8px; border-bottom: 1px solid #eee;"><span th:text="${item.name}">Product Name</span></td>
+                        <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;"><span th:text="${item.quantity}">1</span></td>
+                        <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;"><span th:text="${item.price}">100.000 VNĐ</span></td>
+                    </tr>
+                     <tr>
+                        <td colspan="2" style="text-align: right; padding: 8px; font-weight: bold;">Tổng cộng:</td>
+                        <td style="text-align: right; padding: 8px; font-weight: bold; color: #e91e63;"><span th:text="${totalAmount}">300.000 VNĐ</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            -->
+
+            <p style="font-size: 15px; color: #333; margin-top: 20px; margin-bottom: 30px;">Chúng tôi đang xử lý đơn hàng của bạn và sẽ giao hàng trong thời gian sớm nhất 🚚. Bạn sẽ nhận được thông báo khi đơn hàng được gửi đi.</p>
+
+            <!-- Call to Action Button -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <a href="http://localhost:8080/home"
+                   style="background-color: #ff4081; color: white; padding: 14px 28px; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; display: inline-block; transition: background-color 0.3s ease; mso-hide: all;"
+                   target="_blank">
+                    Tiếp tục mua sắm 🛒
+                </a>
+                <!-- Fallback button for Outlook -->
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:8080/home" style="height:42px;v-text-anchor:middle;width:200px;" arcsize="60%" strokecolor="#ff4081" fillcolor="#ff4081">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">Tiếp tục mua sắm 🛒</center>
+                </v:roundrect>
+                <![endif]-->
+            </div>
+
+            <!-- Footer Area -->
+            <div style="border-top: 1px solid #eee; padding-top: 20px; text-align: center; font-size: 13px; color: #888;">
+                <p style="margin: 0; margin-bottom: 5px;">Cảm ơn bạn đã tin tưởng và mua sắm tại Sunday Store!</p>
+                <p style="margin: 0;">Theo dõi chúng tôi: [Link Facebook] [Link Instagram]</p> <!-- Add social links if available -->
+                <p style="margin: 15px 0 0 0;">© 2023 Sunday Store. All rights reserved.</p>
+            </div>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

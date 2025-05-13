@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sản phẩm</title>
+    <link rel="stylesheet" href="/css/menu.css">
+    <link rel="stylesheet" href="/css/custom-sweetalert.css">
+    <!-- Link đến file CSS chung cho admin -->
+    <link rel="stylesheet" href="/css/admin-crud.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link th:href="@{/icons/material-icon.png}" rel="icon" type="image/png">
+
+    <style>
+        /* Style riêng cho trang sản phẩm */
+        /* Custom styles for layout and input */
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Style cho upload hình ảnh */
+        .form-group--upload {
+            margin-top: 20px;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 1px dashed #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-file-upload:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+        }
+
+        .custom-file-upload i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .selected-filenames {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .selected-filenames div {
+            margin: 5px 0;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        /* Filter form styles (reverted to original - each in own row implicitly) */
+        .filter-controls {
+            /* Removed grid layout to revert to stacked layout */
+            /* display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px; */
+        }
+
+        .filter-controls > div {
+            display: flex;
+            flex-direction: column; /* Keep labels above selects */
+            margin-bottom: 10px; /* Spacing between filter controls */
+        }
+
+        .filter-controls label {
+            margin-bottom: 5px;
+        }
+
+        .filter-controls select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position-x: calc(100% - 8px);
+            background-position-y: 50%;
+            width: 100%; /* Full width for filter selects */
+            box-sizing: border-box; /* Ensure padding and border are included in width */
+        }
+
+        .filter-actions {
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        .filter-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 5px;
+        }
+
+        .apply-filter {
+            background-color: #007bff;
+        }
+
+        .reset-filter {
+            background-color: #6c757d;
+        }
+
+        /* Style cho badge trạng thái (nếu cần điều chỉnh) */
+        .status-badge.status-active {
+            background-color: #28a745; /* Màu xanh lá cây cho hoạt động */
+            color: white;
+        }
+
+        .status-badge.status-inactive {
+            background-color: #f8d7da; /* Màu hồng nhạt cho không hoạt động (hoặc bạn có thể dùng màu đỏ nhạt hơn) */
+            color: #721c24; /* Màu chữ đỏ đậm hơn để tương phản */
+        }
+
+        /* Style cho nút "Kích hoạt" (màu xanh lá cây) */
+        .status-active-button {
+            background-color: #28a745; /* Màu xanh lá cây tươi sáng */
+            color: white;
+            border: none; /* Loại bỏ border nếu muốn */
+            padding: 8px 12px; /* Điều chỉnh padding cho vừa vặn */
+            border-radius: 5px; /* Góc bo tròn */
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Hiệu ứng hover nhẹ */
+            margin-left: 5px; /* Khoảng cách với các nút khác */
+        }
+
+        .status-active-button:hover {
+            background-color: #1e7e34; /* Màu xanh đậm hơn khi hover */
+        }
+
+        /* Style cho nút "Ngừng" (màu đỏ) */
+        .status-inactive-button {
+            background-color: #dc3545; /* Màu đỏ tươi sáng */
+            color: white;
+            border: none; /* Loại bỏ border nếu muốn */
+            padding: 8px 12px; /* Điều chỉnh padding cho vừa vặn */
+            border-radius: 5px; /* Góc bo tròn */
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Hiệu ứng hover nhẹ */
+            margin-left: 5px; /* Khoảng cách với các nút khác */
+        }
+
+        .status-inactive-button:hover {
+            background-color: #c82333; /* Màu đỏ đậm hơn khi hover */
+        }
+    </style>
+
+</head>
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<main>
+    <div class="container">
+        <!-- Alerts for SweetAlert2 -->
+        <div id="alertContainer" style="display: none;"
+             th:data-success-message="${successMessage}"
+             th:data-error-message="${errorMessage}"></div>
+
+        <!-- Search and Filter Panel -->
+        <div class="search-filter-panel">
+            <h3 class="section-title"><i class="fas fa-filter"></i> Tìm kiếm & Lọc sản phẩm</h3>
+            <form th:action="@{/admin/san-pham/search}" method="GET" class="search-bar">
+                <input type="text" name="keyword" th:value="${searchKeyword}" placeholder="Tìm theo tên hoặc mã sản phẩm...">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <form th:action="@{/admin/san-pham/filter}" method="GET" id="filterForm">
+                <div class="filter-controls">
+                    <div>
+                        <label for="danhMucId">Danh mục</label>
+                        <select name="danhMucId" id="danhMucId">
+                            <option value="">-- Danh mục --</option>
+                            <option th:each="dm : ${danhMucs}"
+                                    th:value="${dm.danhMucId}"
+                                    th:text="${dm.tenDanhMuc}"
+                                    th:selected="${selectedDanhMucId != null && selectedDanhMucId == dm.danhMucId}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="thuongHieuId">Thương hiệu</label>
+                        <select name="thuongHieuId" id="thuongHieuId">
+                            <option value="">-- Thương hiệu --</option>
+                            <option th:each="th : ${thuongHieus}"
+                                    th:value="${th.thuongHieuId}"
+                                    th:text="${th.tenThuongHieu}"
+                                    th:selected="${selectedThuongHieuId != null && selectedThuongHieuId == th.thuongHieuId}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="chatLieuId">Chất liệu</label>
+                        <select name="chatLieuId" id="chatLieuId">
+                            <option value="">-- Chất liệu --</option>
+                            <option th:each="cl : ${chatLieus}"
+                                    th:value="${cl.chatLieuId}"
+                                    th:text="${cl.tenChatLieu}"
+                                    th:selected="${selectedChatLieuId != null && selectedChatLieuId == cl.chatLieuId}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="kieuDangId">Kiểu dáng</label>
+                        <select name="kieuDangId" id="kieuDangId">
+                            <option value="">-- Kiểu dáng --</option>
+                            <option th:each="kd : ${kieuDangs}"
+                                    th:value="${kd.kieuDangId}"
+                                    th:text="${kd.tenKieuDang}"
+                                    th:selected="${selectedKieuDangId != null && selectedKieuDangId == kd.kieuDangId}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="trangThai">Trạng thái</label>
+                        <select name="trangThai" id="trangThai">
+                            <option value="">-- Trạng thái --</option>
+                            <option value="Hoạt động" th:selected="${selectedTrangThai == 'Hoạt động'}">Hoạt động</option>
+                            <option value="Không hoạt động" th:selected="${selectedTrangThai == 'Không hoạt động'}">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="apply-filter"><i class="fas fa-check"></i> Áp dụng</button>
+                    <button type="button" class="reset-filter" th:attr="onclick='window.location.href=\'' + @{/admin/san-pham} + '\''">
+                        <i class="fas fa-undo"></i> Đặt lại
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Form for Adding/Editing Product -->
+        <form th:action="@{/admin/san-pham/save}" th:object="${sanPham}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" th:field="*{sanPhamId}">
+
+            <div class="form-group">
+                <label>Tên sản phẩm <span style="color: #dc3545">*</span></label>
+                <input type="text" th:field="*{tenSanPham}">
+                <!-- Use only this span for tenSanPham errors for consistency -->
+                <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('tenSanPham')}"
+                      th:text="${errors.get('tenSanPham')}"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Mô tả</label>
+                <textarea th:field="*{moTa}" rows="3"></textarea>
+            </div>
+
+            <div class="form-row"> <!-- Row for Danh Mục and Kiểu dáng -->
+                <div class="form-group">
+                    <label>Danh mục <span style="color: #dc3545">*</span></label>
+                    <select th:field="*{danhMuc.danhMucId}">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="dm : ${danhMucs}" th:value="${dm.danhMucId}" th:text="${dm.tenDanhMuc}"></option>
+                    </select>
+                    <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('danhMuc')}"
+                          th:text="${errors.get('danhMuc')}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Kiểu dáng <span style="color: #dc3545">*</span></label>
+                    <select th:field="*{kieuDang.kieuDangId}">
+                        <option value="">-- Chọn kiểu dáng --</option>
+                        <option th:each="kd : ${kieuDangs}" th:value="${kd.kieuDangId}" th:text="${kd.tenKieuDang}"></option>
+                    </select>
+                    <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('kieuDang')}"
+                          th:text="${errors.get('kieuDang')}"></span>
+                </div>
+            </div> <!-- End Row -->
+
+            <div class="form-row"> <!-- Row for Thương hiệu and Chất liệu -->
+                <div class="form-group">
+                    <label>Thương hiệu <span style="color: #dc3545">*</span></label>
+                    <select th:field="*{thuongHieu.thuongHieuId}">
+                        <option value="">-- Chọn thương hiệu --</option>
+                        <option th:each="th : ${thuongHieus}" th:value="${th.thuongHieuId}" th:text="${th.tenThuongHieu}"></option>
+                    </select>
+                    <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('thuongHieu')}"
+                          th:text="${errors.get('thuongHieu')}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Chất liệu <span style="color: #dc3545">*</span></label>
+                    <select th:field="*{chatLieu.chatLieuId}">
+                        <option value="">-- Chọn chất liệu --</option>
+                        <option th:each="cl : ${chatLieus}" th:value="${cl.chatLieuId}" th:text="${cl.tenChatLieu}"></option>
+                    </select>
+                    <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('chatLieu')}"
+                          th:text="${errors.get('chatLieu')}"></span>
+                </div>
+            </div> <!-- End Row -->
+
+            <!-- Upload Hình Ảnh -->
+            <div class="form-group form-group--upload">
+                <label>Hình ảnh sản phẩm <span style="color: #dc3545">*</span></label> <!-- Added required indicator -->
+                <div class="custom-file-upload">
+                    <i class="fas fa-upload"></i> Chọn hình ảnh
+                    <input type="file" name="images" multiple accept="image/*" class="file-input" id="imageInput">
+                </div>
+                <small>Chọn nhiều ảnh bằng cách giữ phím Ctrl hoặc Shift khi chọn ảnh (Tối đa 5 ảnh, mỗi ảnh <= 5MB)</small> <!-- Added info -->
+                <div class="selected-filenames" id="selectedFilenames">
+                    <!-- Filenames will be displayed here -->
+                </div>
+                <!-- Add this span to display the image validation error -->
+                <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('images')}"
+                      th:text="${errors.get('images')}"></span>
+                <!-- Optional: Display individual file errors if needed -->
+                <!-- Example for the first file error (images_0) -->
+                <!-- <span class="invalid-feedback" th:if="${errors != null && errors.containsKey('images_0')}" th:text="${errors.get('images_0')}"></span> -->
+                <!-- You would repeat this for images_1, images_2, etc., up to 5 -->
+            </div>
+
+            <!-- Hiển thị ảnh đã tải lên (unchanged) -->
+            <div class="form-group" th:if="${sanPham.hinhAnhs != null && !sanPham.hinhAnhs.isEmpty()}"> <!-- Added check for empty list -->
+                <label>Hình ảnh đã tải lên</label>
+                <div class="uploaded-images">
+                    <div th:each="hinhAnh : ${sanPham.hinhAnhs}">
+                        <img th:src="@{${hinhAnh.hinhAnhUrl}}" alt="Hình ảnh sản phẩm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-button"><i class="fas fa-save"></i> Lưu</button>
+                <a th:href="@{/admin/san-pham}" class="cancel-button"><i class="fas fa-times"></i> Hủy</a>
+            </div>
+        </form>
+
+        <br>
+
+        <!-- Product Table -->
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>Mã sản phẩm</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th>Thương hiệu</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sp : ${sanPhams}">
+                    <td th:text="${sp.maSanPham}"></td>
+                    <td th:text="${sp.tenSanPham}"></td>
+                    <td th:text="${sp.danhMuc?.tenDanhMuc}"></td>
+                    <td th:text="${sp.thuongHieu?.tenThuongHieu}"></td>
+                    <td>
+                            <span class="status-badge"
+                                  th:classappend="${sp.trangThai == 'Hoạt động'} ? 'status-active' : 'status-inactive'"
+                                  th:text="${sp.trangThai}"></span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/admin/san-pham/edit/{id}(id=${sp.sanPhamId})}" class="action-button edit-button">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <a th:href="@{/admin/chi-tiet-san-pham/list/{id}(id=${sp.sanPhamId})}"
+                               class="action-button detail-button">
+                                <i class="fas fa-info-circle"></i> Chi tiết
+                            </a>
+                            <!-- Nút trạng thái động -->
+                            <button class="action-button status-button"
+                                    th:if="${sp.trangThai == 'Không hoạt động'}"
+                                    th:classappend="status-active-button" /* Màu xanh lá cây cho kích hoạt */
+                            th:attr="data-id=${sp.sanPhamId}"
+                            onclick="toggleStatus(this)">
+                            <i class="fas fa-check-circle"></i> Kích hoạt
+                            </button>
+                            <button class="action-button status-button"
+                                    th:if="${sp.trangThai == 'Hoạt động'}"
+                                    th:classappend="status-inactive-button" /* Màu đỏ cho ngừng hoạt động */
+                            th:attr="data-id=${sp.sanPhamId}"
+                            onclick="toggleStatus(this)">
+                            <i class="fas fa-ban"></i> Ngừng
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${sanPhams == null || sanPhams.isEmpty()}">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>Không tìm thấy sản phẩm</h3>
+                            <p>Vui lòng thử lại với điều kiện tìm kiếm khác hoặc thêm sản phẩm mới.</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script>
+    // SweetAlert2 for success/error messages
+    document.addEventListener('DOMContentLoaded', function() {
+        const alertContainer = document.getElementById('alertContainer');
+        const successMessage = alertContainer.dataset.successMessage;
+        const errorMessage = alertContainer.dataset.errorMessage;
+
+        if (successMessage) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: successMessage,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        } else if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: errorMessage,
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+
+    // Toggle status via AJAX
+    function toggleStatus(button) {
+        const sanPhamId = button.getAttribute('data-id');
+        fetch(`/admin/san-pham/toggle-status/${sanPhamId}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.message,
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể kết nối tới server!',
+                    confirmButtonText: 'OK'
+                });
+            });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (SweetAlert and toggleStatus scripts - keep them here) ...
+
+        // --- New code to display filenames ---
+        const imageInput = document.getElementById('imageInput');
+        const selectedFilenamesContainer = document.getElementById('selectedFilenames');
+
+        imageInput.addEventListener('change', function() {
+            selectedFilenamesContainer.innerHTML = ''; // Clear previous filenames
+
+            if (imageInput.files && imageInput.files.length > 0) {
+                const files = imageInput.files;
+                const filenamesList = document.createElement('ul'); // Create an unordered list to display filenames
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const filenameItem = document.createElement('li'); // Create a list item for each filename
+                    filenameItem.textContent = file.name; // Set the filename as text content
+                    filenamesList.appendChild(filenameItem); // Add the list item to the unordered list
+                }
+                selectedFilenamesContainer.appendChild(filenamesList); // Add the list to the container
+            } else {
+                // Optionally display a message when no files are selected (or clear the container)
+                // selectedFilenamesContainer.textContent = "No files selected.";
+            }
+        });
+    });
+</script>
+<script src="/js/menu.js"></script>
+</body>
+</html>

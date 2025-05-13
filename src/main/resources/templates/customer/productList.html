@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm - Sunday</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Nhúng Header Fragment -->
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<main class="container py-4">
+    <section class="mb-5">
+        <h2 class="section-title">Danh sách sản phẩm</h2>
+
+        <!-- Filter Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/bo-suu-tap}" method="get">
+                    <div class="row g-3">
+                        <!-- Price Range -->
+                        <div class="col-md-3">
+                            <label for="minPrice" class="form-label">Giá từ:</label>
+                            <input type="number" class="form-control" id="minPrice" name="minPrice" th:value="${minPrice}" placeholder="Giá tối thiểu">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="maxPrice" class="form-label">đến:</label>
+                            <input type="number" class="form-control" id="maxPrice" name="maxPrice" th:value="${maxPrice}" placeholder="Giá tối đa">
+                        </div>
+
+                        <!-- Danh Mục Filter -->
+                        <div class="col-md-3">
+                            <label for="danhMucId" class="form-label">Danh mục:</label>
+                            <select class="form-select" id="danhMucId" name="danhMucId">
+                                <option value="" selected>Tất cả danh mục</option>
+                                <option th:each="dm : ${danhMucList}" th:value="${dm.danhMucId}" th:text="${dm.tenDanhMuc}" th:selected="${danhMucId == dm.danhMucId}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Thương Hiệu Filter -->
+                        <div class="col-md-3">
+                            <label for="thuongHieuId" class="form-label">Thương hiệu:</label>
+                            <select class="form-select" id="thuongHieuId" name="thuongHieuId">
+                                <option value="" selected>Tất cả thương hiệu</option>
+                                <option th:each="th : ${thuongHieuList}" th:value="${th.thuongHieuId}" th:text="${th.tenThuongHieu}" th:selected="${thuongHieuId == th.thuongHieuId}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Chất Liệu Filter -->
+                        <div class="col-md-3">
+                            <label for="chatLieuId" class="form-label">Chất liệu:</label>
+                            <select class="form-select" id="chatLieuId" name="chatLieuId">
+                                <option value="" selected>Tất cả chất liệu</option>
+                                <option th:each="cl : ${chatLieuList}" th:value="${cl.chatLieuId}" th:text="${cl.tenChatLieu}" th:selected="${chatLieuId == cl.chatLieuId}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Kiểu Dáng Filter -->
+                        <div class="col-md-3">
+                            <label for="kieuDangId" class="form-label">Kiểu dáng:</label>
+                            <select class="form-select" id="kieuDangId" name="kieuDangId">
+                                <option value="" selected>Tất cả kiểu dáng</option>
+                                <option th:each="kd : ${kieuDangList}" th:value="${kd.kieuDangId}" th:text="${kd.tenKieuDang}" th:selected="${kieuDangId == kd.kieuDangId}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 text-center">
+                            <button type="submit" class="btn btn-primary">Lọc sản phẩm</button>
+                            <a th:href="@{/bo-suu-tap}" class="btn btn-secondary">Xóa bộ lọc</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product list -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4" th:if="${not #lists.isEmpty(sanPhamList)}">
+            <div class="col" th:each="sanPham : ${sanPhamList}">
+                <div class="card product position-relative h-100">
+                    <!-- Badge hiển thị giảm giá -->
+                    <div th:if="${not #lists.isEmpty(sanPham.chiTietSanPhams)}" class="product-badge">
+                    <span th:if="${sanPham.chiTietSanPhams[0].giaBan + 200000 > sanPham.chiTietSanPhams[0].giaBan}"
+                          th:text="${(#numbers.formatDecimal((sanPham.chiTietSanPhams[0].giaBan + 200000 - sanPham.chiTietSanPhams[0].giaBan) / (sanPham.chiTietSanPhams[0].giaBan + 200000) * 100, 0, 'COMMA', 0, 'POINT')) + '%'}">
+                    </span>
+                    </div>
+
+                    <!-- Slideshow hình ảnh sản phẩm -->
+                    <div th:if="${not #lists.isEmpty(sanPham.hinhAnhs)}" class="carousel slide"
+                         th:id="'productCarousel' + ${sanPham.sanPhamId}" data-bs-ride="carousel"
+                         data-bs-interval="2000">
+                        <div class="carousel-inner">
+                            <div th:each="hinhAnh, index : ${sanPham.hinhAnhs}" class="carousel-item"
+                                 th:classappend="${index.index == 0} ? 'active'">
+                                <img th:src="${hinhAnh.hinhAnhUrl}" class="d-block w-100" alt="Hình ảnh sản phẩm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="product-title" th:text="${sanPham.tenSanPham}"></h5>
+
+                        <!-- Hiển thị giá cũ và giá mới -->
+                        <div class="d-flex flex-column">
+                        <span class="old-price text-muted text-decoration-line-through"
+                              th:if="${not #lists.isEmpty(sanPham.chiTietSanPhams)}">
+                            <i class="fas fa-tag"></i>
+                            <span th:text="${#numbers.formatDecimal(sanPham.chiTietSanPhams[0].giaBan + 200000, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                        </span>
+                            <span class="price text-primary fw-bold"
+                                  th:if="${not #lists.isEmpty(sanPham.chiTietSanPhams)}">
+                            <i class="fas fa-tag"></i>
+                            <span th:text="${#numbers.formatDecimal(sanPham.chiTietSanPhams[0].giaBan, 0, 'COMMA', 0, 'POINT')} + '₫'"></span>
+                        </span>
+                        </div>
+
+                        <!-- Xem chi tiết thay vì thêm vào giỏ hàng -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <a th:href="@{/products/{id}(id=${sanPham.sanPhamId})}" class="btn btn-primary flex-grow-1 me-2">
+                                <i class="fas fa-eye"></i> Xem chi tiết
+                            </a>
+                            <button class="favorite">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(sanPhamList)}" class="text-center mt-3">
+            <p>Không tìm thấy sản phẩm phù hợp với bộ lọc.</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" th:if="${not productPage.isEmpty()}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!productPage.hasPrevious()} ? 'disabled'">
+                    <a class="page-link" th:href="@{/products/list(page=${productPage.number - 1}, size=${productPage.size}, minPrice=${minPrice}, maxPrice=${maxPrice}, danhMucId=${danhMucId}, thuongHieuId=${thuongHieuId}, chatLieuId=${chatLieuId}, kieuDangId=${kieuDangId})}" tabindex="-1" aria-disabled="${!productPage.hasPrevious()}">Trước</a>
+                </li>
+                <!-- Page numbers -->
+                <li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, productPage.totalPages - 1)}" th:classappend="${pageNumber == productPage.number} ? 'active'">
+                    <a class="page-link" th:href="@{/products/list(page=${pageNumber}, size=${productPage.size}, minPrice=${minPrice}, maxPrice=${maxPrice}, danhMucId=${danhMucId}, thuongHieuId=${thuongHieuId}, chatLieuId=${chatLieuId}, kieuDangId=${kieuDangId})}" th:text="${pageNumber + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!productPage.hasNext()} ? 'disabled'">
+                    <a class="page-link" th:href="@{/products/list(page=${productPage.number + 1}, size=${productPage.size}, minPrice=${minPrice}, maxPrice=${maxPrice}, danhMucId=${danhMucId}, thuongHieuId=${thuongHieuId}, chatLieuId=${chatLieuId}, kieuDangId=${kieuDangId})}" aria-disabled="${!productPage.hasNext()}">Sau</a>
+                </li>
+            </ul>
+        </nav>
+
+    </section>
+</main>
+
+<!-- Nhúng Footer Fragment -->
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    // Chức năng yêu thích sản phẩm (giữ nguyên từ trang chủ)
+    document.querySelectorAll('.favorite').forEach(button => {
+        button.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('far')) {
+                icon.classList.replace('far', 'fas');
+                icon.style.color = '#F44336';
+            } else {
+                icon.classList.replace('fas', 'far',);
+                icon.style.color = '#9E9E9E';
+            }
+        });
+    });
+</script>
+</body>
+</html>

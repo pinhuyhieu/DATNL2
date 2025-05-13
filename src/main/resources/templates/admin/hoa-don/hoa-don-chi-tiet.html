@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi Tiết Hóa Đơn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/menu.css">
+    <link rel="stylesheet" href="/css/crud-thuoc-tinh.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #28a745; /* Adjusted success color */
+            --payment-color: #28a745; /* Added for Paid/Payment status */
+            --warning-color: #ffc107; /* Changed for Pending */
+            --info-color: #17a2b8; /* Changed for Delivered */
+            --danger-color: #dc3545; /* Changed for Voided */
+            --shipping-color: #6c757d; /* Changed for Shipping */
+            --confirmed-color: #007bff; /* Added for Confirmed */
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+            --paid-online-color: #17a2b8; /* Màu xanh dương nhạt, bạn có thể thay đổi */
+        }
+
+        body {
+            background-color: #f7f7fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto; /* Added top/bottom margin */
+            padding: 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title i {
+            color: var(--primary-color);
+        }
+
+        .order-id {
+            font-size: 16px;
+            color: var(--gray-color);
+            margin-left: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary-color);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .order-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .order-detail {
+            margin-bottom: 8px;
+        }
+
+        .order-detail-label {
+            font-weight: 500;
+            color: var(--gray-color);
+            margin-bottom: 4px;
+            font-size: 14px; /* Slightly smaller label */
+        }
+
+        .order-detail-value {
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 15px;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex; /* Use inline-flex for icon alignment */
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            white-space: nowrap; /* Prevent badge text wrapping */
+        }
+
+        /* Badge colors using variables for easier management */
+        .badge-pending { background-color: var(--warning-color); color: var(--dark-color); } /* Chờ xác nhận */
+        .badge-payment { background-color: var(--payment-color); color: white; } /* Chờ thanh toán */
+        .badge-confirmed { background-color: var(--confirmed-color); color: white; } /* Đã xác nhận */
+        .badge-shipping { background-color: var(--shipping-color); color: white; } /* Đang giao hàng */
+        .badge-delivered { background-color: var(--info-color); color: white; } /* Đã giao hàng */
+        .badge-voided { background-color: var(--danger-color); color: white; } /* Đã hủy */
+        .badge-paid { background-color: var(--payment-color); color: white; } /* Đã thanh toán */
+        .badge-paid-online {
+            background-color: var(--paid-online-color);
+            color: white;
+        }
+        .badge-failed { background-color: var(--danger-color); color: white; } /* Thanh toán thất bại - Use danger */
+
+
+        /* Style adjustments for better readability with colors */
+        .badge-pending i { color: #856404; } /* Darker icon for light background */
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #eaeaea;
+            color: var(--gray-color);
+            font-weight: 600;
+            background-color: #f8f9fa; /* Light header background */
+            font-size: 14px;
+        }
+
+        .product-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eaeaea;
+            font-size: 14px;
+        }
+
+        .product-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-table tbody tr:hover {
+            background-color: #f1f1f1; /* Subtle hover effect */
+        }
+
+        .product-name {
+            font-weight: 500;
+        }
+
+        .product-attrs {
+            font-size: 13px; /* Slightly smaller */
+            color: var(--gray-color);
+        }
+
+        .price-col {
+            text-align: right;
+            white-space: nowrap; /* Prevent price wrapping */
+        }
+
+        .btn {
+            display: inline-flex; /* Align icon and text */
+            align-items: center;
+            justify-content: center; /* Center content */
+            gap: 6px; /* Space between icon and text in buttons */
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 15px;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: var(--secondary-color); }
+        .btn-secondary { background-color: var(--light-color); color: var(--dark-color); border: 1px solid #dee2e6; }
+        .btn-secondary:hover { background-color: #e9ecef; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover { background-color: #c82333; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-info { background-color: var(--info-color); color: white; }
+        .btn-info:hover { background-color: #138496; }
+        .btn-warning { background-color: var(--warning-color); color: var(--dark-color); }
+        .btn-warning:hover { background-color: #e0a800; }
+        .btn-confirmed { background-color: var(--confirmed-color); color: white; }
+        .btn-confirmed:hover { background-color: #0056b3; }
+        .btn-shipping { background-color: var(--shipping-color); color: white; }
+        .btn-shipping:hover { background-color: #5a6268; }
+
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px; /* Slightly reduced padding */
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 15px;
+            transition: var(--transition);
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end; /* Align buttons to the right */
+        }
+
+        .card-footer {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .two-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Fixed two columns */
+            gap: 30px; /* Increased gap */
+        }
+
+        @media (max-width: 992px) {
+            .two-cols {
+                grid-template-columns: 1fr; /* Stack columns */
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .order-summary {
+                grid-template-columns: 1fr;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .page-header .btn {
+                width: auto; /* Don't make back button full width */
+            }
+            .form-actions {
+                flex-direction: column; /* Stack buttons vertically */
+            }
+            .form-actions .btn {
+                width: 100%; /* Make action buttons full width */
+            }
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 10px 12px; /* Slightly smaller padding */
+            border-bottom: 2px solid #eaeaea;
+            color: var(--gray-color);
+            font-weight: 600;
+            font-size: 13px; /* Slightly smaller font */
+            background-color: #f8f9fa;
+        }
+
+        .history-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eaeaea;
+            font-size: 13px; /* Consistent font size */
+            vertical-align: middle; /* Align content vertically */
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table .badge {
+            font-size: 11px; /* Smaller badges in history */
+            padding: 3px 8px;
+            gap: 4px; /* Smaller gap for small badges */
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray-color);
+        }
+
+        .empty-history i {
+            font-size: 30px; /* Smaller icon */
+            margin-bottom: 10px;
+            color: #dee2e6;
+        }
+
+        .status-arrow {
+            display: flex;
+            align-items: center;
+            gap: 6px; /* Reduced gap */
+            flex-wrap: nowrap; /* Prevent wrapping if possible */
+            white-space: nowrap;
+        }
+
+        .status-arrow i.fa-arrow-right { /* Target the arrow specifically */
+            color: var(--gray-color);
+            font-size: 11px; /* Smaller arrow */
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0; /* Reduced padding */
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px dashed #eee; /* Dashed separator */
+        }
+        .totals-row:last-of-type {
+            border-bottom: none; /* Remove border for last totals row before grand total */
+        }
+
+        .grand-total {
+            font-size: 16px; /* Adjusted size */
+            font-weight: 600;
+            color: var(--primary-color);
+            border-top: 2px solid #eaeaea;
+            margin-top: 10px; /* Space before grand total */
+            padding-top: 10px;
+        }
+
+        /* Specific styles for current status display */
+        .current-status {
+            margin-bottom: 20px;
+            padding-bottom: 15px; /* Add some space below */
+            border-bottom: 1px solid #eee; /* Separator */
+        }
+        .current-status .badge {
+            font-size: 15px; /* Slightly larger */
+        }
+
+        /* Helper class for icon inside badge/button */
+        .icon {
+            width: 1.1em; /* Ensure consistent icon width */
+            text-align: center;
+        }
+
+        /* Alert Message Styles (Optional, if needed) */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .alert .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #000;
+            text-shadow: 0 1px 0 #fff;
+            opacity: .5;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+        }
+
+
+    </style>
+</head>
+<body>
+<div th:replace="fragments/sidebar :: sidebar"></div>
+<main>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-file-invoice"></i> Chi Tiết Hóa Đơn
+                <span class="order-id" th:text="'#' + ${hoaDon.maHoaDon}"></span>
+            </h1>
+            <a th:href="@{/admin/hoa-don/hien-thi}" class="btn btn-secondary btn-sm"> <!-- Made button smaller -->
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <!-- Placeholder for Flash Messages (Alternative to SweetAlert if needed) -->
+        <!--
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+        -->
+
+        <div class="two-cols">
+            <div class="left-col">
+                <!-- Order Summary Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-info-circle"></i> Thông Tin Hóa Đơn
+                        </h2>
+                        <!-- Status Badge with Icon -->
+                        <span class="badge" th:classappend="
+                            ${hoaDon.trangThai == 'Chờ xác nhận' ? 'badge-pending' :
+                            hoaDon.trangThai == 'Chờ thanh toán' ? 'badge-payment' :
+                            hoaDon.trangThai == 'Đã xác nhận' ? 'badge-confirmed' :
+                            hoaDon.trangThai == 'Đang giao hàng' ? 'badge-shipping' :
+                            hoaDon.trangThai == 'Đã giao hàng' ? 'badge-delivered' :
+                            hoaDon.trangThai == 'Đã hủy' ? 'badge-voided' :
+                            hoaDon.trangThai == 'Đã thanh toán' ? 'badge-paid' :
+                            hoaDon.trangThai == 'Đã thanh toán online' ? 'badge-paid-online' :
+                            hoaDon.trangThai == 'Thanh toán thất bại' ? 'badge-failed' : ''}">
+                            <th:block th:switch="${hoaDon.trangThai}">
+                                <i th:case="'Chờ xác nhận'" class="fas fa-hourglass-half icon"></i>
+                                <i th:case="'Chờ thanh toán'" class="fas fa-credit-card icon"></i>
+                                <i th:case="'Đã xác nhận'" class="fas fa-check-circle icon"></i>
+                                <i th:case="'Đang giao hàng'" class="fas fa-truck icon"></i>
+                                <i th:case="'Đã giao hàng'" class="fas fa-box-check icon"></i>
+                                <i th:case="'Đã hủy'" class="fas fa-ban icon"></i>
+                                <i th:case="'Đã thanh toán'" class="fas fa-money-check-alt icon"></i>
+                                <i th:case="'Đã thanh toán online'" class="fas fa-credit-card icon"></i>
+                                <i th:case="'Thanh toán thất bại'" class="fas fa-times-circle icon"></i>
+                                <i th:case="*" class="fas fa-question-circle icon"></i> <!-- Default -->
+                            </th:block>
+                            <span th:text="${hoaDon.trangThai}"></span>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="order-summary">
+                            <div class="order-detail">
+                                <div class="order-detail-label">Ngày Tạo</div>
+                                <div class="order-detail-value" th:text="${hoaDon.ngayTaoHoaDon != null ? #temporals.format(hoaDon.ngayTaoHoaDon, 'dd-MM-yyyy HH:mm') : 'N/A'}"></div>
+                            </div>
+
+                            <!-- Conditional NgayBan display -->
+                            <th:block th:if="${hoaDon.ngayBan != null}">
+                                <div class="order-detail">
+                                    <div class="order-detail-label">
+                                        <th:block th:if="${hoaDon.kenhBanHang == 'Website'}">Ngày Giao hàng thành công</th:block>
+                                        <th:block th:if="${hoaDon.kenhBanHang == 'POS'}">Ngày bán</th:block>
+                                        <th:block th:if="${hoaDon.kenhBanHang != 'Website' and hoaDon.kenhBanHang != 'POS'}">Ngày Hoàn thành</th:block> <!-- Default -->
+                                    </div>
+                                    <div class="order-detail-value" th:text="${#temporals.format(hoaDon.ngayBan, 'dd-MM-yyyy HH:mm')}"></div>
+                                </div>
+                            </th:block>
+
+                            <div class="order-detail">
+                                <div class="order-detail-label">Kênh Bán Hàng</div>
+                                <div class="order-detail-value" th:text="${hoaDon.kenhBanHang != null ? hoaDon.kenhBanHang : 'N/A'}"></div>
+                            </div>
+
+                            <!-- Conditional NhanVien display -->
+                            <th:block th:if="${hoaDon.kenhBanHang == 'POS' and hoaDon.nhanVien != null}">
+                                <div class="order-detail">
+                                    <div class="order-detail-label">Nhân viên bán hàng</div>
+                                    <div class="order-detail-value" th:text="${hoaDon.nhanVien.ten != null ? hoaDon.nhanVien.ten : 'N/A'}"></div>
+                                </div>
+                            </th:block>
+
+                            <div class="order-detail">
+                                <div class="order-detail-label">Tổng Tiền</div>
+                                <div class="order-detail-value" th:text="${totalPayment != null ? #numbers.formatDecimal(totalPayment, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-user"></i> Thông Tin Khách Hàng
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <th:block th:if="${hoaDon.khachHang != null}">
+                            <div class="order-detail">
+                                <div class="order-detail-label">Tên Khách Hàng</div>
+                                <div class="order-detail-value" th:text="${hoaDon.khachHang.ten != null ? hoaDon.khachHang.ten : 'N/A'}"></div>
+                            </div>
+                            <div class="order-detail">
+                                <div class="order-detail-label">Số Điện Thoại</div>
+                                <div class="order-detail-value" th:text="${hoaDon.khachHang.soDienThoai != null ? hoaDon.khachHang.soDienThoai : 'N/A'}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${hoaDon.khachHang == null}">
+                            <div class="order-detail">
+                                <div class="order-detail-value"><i class="fas fa-user-tag"></i> Khách vãng lai</div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Shipping Information Card -->
+                <div class="card" th:if="${(hoaDon.nguoiNhanHang != null and hoaDon.nguoiNhanHang != '') or (hoaDon.sdtNhanHang != null and hoaDon.sdtNhanHang != '') or hoaDon.diaChi != null}">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-shipping-fast"></i> Thông Tin Giao Hàng
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <th:block th:if="${hoaDon.nguoiNhanHang != null and hoaDon.nguoiNhanHang != ''}">
+                            <div class="order-detail">
+                                <div class="order-detail-label">Người Nhận Hàng</div>
+                                <div class="order-detail-value" th:text="${hoaDon.nguoiNhanHang}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${hoaDon.sdtNhanHang != null and hoaDon.sdtNhanHang != ''}">
+                            <div class="order-detail">
+                                <div class="order-detail-label">SĐT Người Nhận</div>
+                                <div class="order-detail-value" th:text="${hoaDon.sdtNhanHang}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${hoaDon.diaChi != null}">
+                            <div class="order-detail">
+                                <div class="order-detail-label">Địa Chỉ Giao Hàng</div>
+                                <div class="order-detail-value">
+                                    <span th:if="${hoaDon.diaChi.ghiChu != null}" th:text="${hoaDon.diaChi.ghiChu} + ', '"></span>
+                                    <span th:if="${hoaDon.diaChi.phuongXa != null}" th:text="${hoaDon.diaChi.phuongXa} + ', '"></span>
+                                    <span th:if="${hoaDon.diaChi.quanHuyen != null}" th:text="${hoaDon.diaChi.quanHuyen} + ', '"></span>
+                                    <span th:if="${hoaDon.diaChi.thanhPho != null}" th:text="${hoaDon.diaChi.thanhPho}"></span>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Products Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-shopping-cart"></i> Sản Phẩm Đã Mua
+                        </h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;"> <!-- Remove padding for table -->
+                        <th:block th:if="${hoaDon.chiTietHoaDons != null and not #lists.isEmpty(hoaDon.chiTietHoaDons)}">
+                            <table class="product-table">
+                                <thead>
+                                <tr>
+                                    <th>Sản Phẩm</th>
+                                    <th>Số Lượng</th>
+                                    <th class="price-col">Đơn Giá</th>
+                                    <th class="price-col">Giảm Giá</th>
+                                    <th class="price-col">Thành Tiền</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="chiTiet : ${hoaDon.chiTietHoaDons}">
+                                    <td>
+                                        <div class="product-name" th:text="${chiTiet.chiTietSanPham?.sanPham?.tenSanPham} ?: 'N/A'"></div>
+                                        <div class="product-attrs">
+                                            <span th:text="${chiTiet.chiTietSanPham?.mauSac?.tenMauSac} ?: 'N/A'"></span>,
+                                            <span th:text="${chiTiet.chiTietSanPham?.kichCo?.tenKichCo} ?: 'N/A'"></span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${chiTiet.soLuong} ?: '0'" style="text-align: center;"></td>
+                                    <td class="price-col" th:with="gia=${chiTiet.gia != null ? chiTiet.gia : 0}"
+                                        th:text="${#strings.defaultString(#numbers.formatDecimal(gia, 0, 'COMMA', 0, 'POINT'), '0') + ' đ'}"></td>
+                                    <td class="price-col">-</td>
+                                    <td class="price-col" th:with="thanhTien=${((chiTiet.gia != null ? chiTiet.gia : 0) * (chiTiet.soLuong != null ? chiTiet.soLuong : 0))}"
+                                        th:text="${#strings.defaultString(#numbers.formatDecimal(thanhTien, 0, 'COMMA', 0, 'POINT'), '0') + ' đ'}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="card-footer">
+                                <div class="totals-row">
+                                    <div>Tổng tiền hàng:</div>
+                                    <div th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' đ'}"></div>
+                                </div>
+                                <div class="totals-row" th:if="${hoaDon.maGiamGia != null}">
+                                    <div class="summary-label discount-info">
+                                        <i class="fas fa-tags"></i> Mã giảm giá:
+                                        <span th:text="${hoaDon.maGiamGia.tenMaGiamGia}"></span>
+                                        <span th:if="${hoaDon.maGiamGia.loaiGiamGia == 'Phần trăm'}"
+                                              th:text="|(${#numbers.formatDecimal(hoaDon.maGiamGia.giaTriGiamGia, 0, 'COMMA', 0, 'POINT')}%)|"></span>
+                                    </div>
+                                    <div class="summary-value discount-info">
+                                        - <span th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+                                    </div>
+                                </div>
+                                <div class="totals-row">
+                                    <div>Phí vận chuyển:</div>
+                                    <div th:text="${hoaDon.phiVanChuyenGhn != null ? #numbers.formatDecimal(hoaDon.phiVanChuyenGhn, 0, 'COMMA', 0, 'POINT') + ' đ' : '0 đ'}"></div>
+                                </div>
+                                <div class="totals-row total-payment">
+                                    <div><b>Tổng thanh toán:</b></div>
+                                    <div th:text="${#numbers.formatDecimal(totalPayment, 0, 'COMMA', 0, 'POINT') + ' đ'}"></div>
+                                </div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${hoaDon.chiTietHoaDons == null or #lists.isEmpty(hoaDon.chiTietHoaDons)}">
+                            <div class="card-body"> <!-- Add padding back for empty state -->
+                                <div class="empty-history">
+                                    <i class="fas fa-box-open"></i>
+                                    <p>Không có sản phẩm nào trong đơn hàng này</p>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <!-- Status Update Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-sync-alt"></i> Cập Nhật Trạng Thái
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="current-status">
+                            <div class="order-detail-label">Trạng thái hiện tại:</div>
+                            <div class="order-detail-value">
+                                <!-- Current Status Badge with Icon -->
+                                <span class="badge" th:classappend="
+                                    ${hoaDon.trangThai == 'Chờ xác nhận' ? 'badge-pending' :
+                                    hoaDon.trangThai == 'Chờ thanh toán' ? 'badge-payment' :
+                                    hoaDon.trangThai == 'Đã xác nhận' ? 'badge-confirmed' :
+                                    hoaDon.trangThai == 'Đang giao hàng' ? 'badge-shipping' :
+                                    hoaDon.trangThai == 'Đã giao hàng' ? 'badge-delivered' :
+                                    hoaDon.trangThai == 'Đã hủy' ? 'badge-voided' :
+                                    hoaDon.trangThai == 'Đã thanh toán' ? 'badge-paid' :
+                                    hoaDon.trangThai == 'Đã thanh toán online' ? 'badge-paid-online' :
+                                    hoaDon.trangThai == 'Thanh toán thất bại' ? 'badge-failed' : ''}">
+                                    <th:block th:switch="${hoaDon.trangThai}">
+                                        <i th:case="'Chờ xác nhận'" class="fas fa-hourglass-half icon"></i>
+                                        <i th:case="'Chờ thanh toán'" class="fas fa-credit-card icon"></i>
+                                        <i th:case="'Đã xác nhận'" class="fas fa-check-circle icon"></i>
+                                        <i th:case="'Đang giao hàng'" class="fas fa-truck icon"></i>
+                                        <i th:case="'Đã giao hàng'" class="fas fa-box-check icon"></i>
+                                        <i th:case="'Đã hủy'" class="fas fa-ban icon"></i>
+                                        <i th:case="'Đã thanh toán'" class="fas fa-money-check-alt icon"></i>
+                                        <i th:case="'Đã thanh toán online'" class="fas fa-credit-card icon"></i>
+                                        <i th:case="'Thanh toán thất bại'" class="fas fa-times-circle icon"></i>
+                                        <i th:case="*" class="fas fa-question-circle icon"></i>
+                                    </th:block>
+                                    <span th:text="${hoaDon.trangThai}"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Next Status Button & Form -->
+                        <th:block th:if="${canAdvanceStatus}"> <!-- Use canAdvanceStatus passed from controller -->
+                            <form th:action="@{/admin/hoa-don/next-status/{id}(id=${hoaDon.hoaDonId})}" method="post" class="status-form" id="nextStatusForm">
+                                <div class="form-group">
+                                    <label for="ghiChuNext" class="form-label">Ghi chú cập nhật:</label>
+                                    <textarea id="ghiChuNext" name="ghiChu" class="form-control" rows="2" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <!-- Dynamic Button based on current status -->
+                                    <button type="button" class="btn" id="nextStatusBtn"
+                                            th:classappend="
+                                                ${hoaDon.trangThai == 'Chờ xác nhận' ? 'btn-confirmed' :
+                                                hoaDon.trangThai == 'Đã xác nhận' ? 'btn-shipping' :
+                                                hoaDon.trangThai == 'Chờ thanh toán' ? 'btn-success' :
+                                                hoaDon.trangThai == 'Đã thanh toán' ? 'btn-shipping' :
+                                                hoaDon.trangThai == 'Đã thanh toán online' ? 'btn-shipping' :
+                                                hoaDon.trangThai == 'Đang giao hàng' ? 'btn-info' : 'btn-primary'}">
+                                        <th:block th:switch="${hoaDon.trangThai}">
+                                            <i th:case="'Chờ xác nhận'" class="fas fa-check icon"></i>
+                                            <i th:case="'Đã xác nhận'" class="fas fa-truck-fast icon"></i>
+                                            <i th:case="'Chờ thanh toán'" class="fas fa-money-check icon"></i>
+                                            <i th:case="'Đã thanh toán'" class="fas fa-truck-fast icon"></i>
+                                            <i th:case="'Đã thanh toán online'" class="fas fa-truck-fast icon"></i>
+                                            <i th:case="'Đang giao hàng'" class="fas fa-box-check icon"></i>
+                                            <i th:case="*" class="fas fa-arrow-right icon"></i>
+                                        </th:block>
+                                        <span th:text="${hoaDon.trangThai == 'Chờ xác nhận' ? 'Xác nhận đơn' :
+                                            hoaDon.trangThai == 'Đã xác nhận' ? 'Giao hàng' :
+                                            hoaDon.trangThai == 'Chờ thanh toán' ? 'Xác nhận TT' :
+                                            hoaDon.trangThai == 'Đã thanh toán' ? 'Giao hàng' :
+                                            hoaDon.trangThai == 'Đã thanh toán online' ? 'Giao hàng' :
+                                            hoaDon.trangThai == 'Đang giao hàng' ? 'Hoàn thành GH' : 'Chuyển tiếp'}">
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </th:block>
+                        <th:block th:unless="${canAdvanceStatus}">
+                            <p class="text-muted small" style="text-align: center; margin-top: 20px;">Đơn hàng đã ở trạng thái cuối hoặc không thể chuyển tiếp.</p>
+                        </th:block>
+
+                        <!-- Cancel Order Button & Form -->
+                        <th:block th:if="${canCancel}"> <!-- Use canCancel passed from controller -->
+                            <hr style="margin: 25px 0; border-top: 1px solid #eee;"> <!-- Separator -->
+                            <form th:action="@{/admin/hoa-don/cancel/{id}(id=${hoaDon.hoaDonId})}" method="post" class="status-form" id="cancelOrderForm">
+                                <div class="form-group">
+                                    <label for="ghiChuCancel" class="form-label">Lý do hủy đơn:</label>
+                                    <textarea id="ghiChuCancel" name="ghiChu" class="form-control" rows="2" placeholder="Nhập lý do hủy đơn (bắt buộc)" required></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-danger" id="cancelOrderBtn">
+                                        <i class="fas fa-ban icon"></i> Hủy đơn hàng
+                                    </button>
+                                </div>
+                            </form>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Status History Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history"></i> Lịch Sử Trạng Thái
+                        </h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;"> <!-- Remove padding for table -->
+                        <th:block th:if="${lichSuTrangThais != null and not #lists.isEmpty(lichSuTrangThais)}">
+                            <table class="history-table">
+                                <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Thay đổi</th>
+                                    <th>NV</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="lichSu : ${lichSuTrangThais}">
+                                    <td th:text="${lichSu.ngayThayDoi != null ? #temporals.format(lichSu.ngayThayDoi, 'dd-MM HH:mm') : 'N/A'}" style="white-space: nowrap;"></td>
+                                    <td>
+                                        <div class="status-arrow">
+                                            <!-- Previous Status Badge -->
+                                            <span class="badge small" th:classappend="
+                                                ${lichSu.trangThaiCu == null ? 'badge-light' :
+                                                lichSu.trangThaiCu == 'Chờ xác nhận' ? 'badge-pending' :
+                                                lichSu.trangThaiCu == 'Chờ thanh toán' ? 'badge-payment' :
+                                                lichSu.trangThaiCu == 'Đã xác nhận' ? 'badge-confirmed' :
+                                                lichSu.trangThaiCu == 'Đang giao hàng' ? 'badge-shipping' :
+                                                lichSu.trangThaiCu == 'Đã giao hàng' ? 'badge-delivered' :
+                                                lichSu.trangThaiCu == 'Đã hủy' ? 'badge-voided' :
+                                                lichSu.trangThaiCu == 'Đã thanh toán' ? 'badge-paid' :
+                                                lichSu.trangThaiCu == 'Đã thanh toán online' ? 'badge-paid-online' :
+                                                lichSu.trangThaiCu == 'Thanh toán thất bại' ? 'badge-failed' : ''}">
+                                                <span th:text="${lichSu.trangThaiCu ?: 'Tạo mới'}"></span>
+                                            </span>
+
+                                            <i class="fas fa-arrow-right"></i>
+
+                                            <!-- New Status Badge -->
+                                            <span class="badge small" th:classappend="
+                                                ${lichSu.trangThaiMoi == 'Chờ xác nhận' ? 'badge-pending' :
+                                                lichSu.trangThaiMoi == 'Chờ thanh toán' ? 'badge-payment' :
+                                                lichSu.trangThaiMoi == 'Đã xác nhận' ? 'badge-confirmed' :
+                                                lichSu.trangThaiMoi == 'Đang giao hàng' ? 'badge-shipping' :
+                                                lichSu.trangThaiMoi == 'Đã giao hàng' ? 'badge-delivered' :
+                                                lichSu.trangThaiMoi == 'Đã hủy' ? 'badge-voided' :
+                                                lichSu.trangThaiMoi == 'Đã thanh toán' ? 'badge-paid' :
+                                                lichSu.trangThaiMoi == 'Đã thanh toán online' ? 'badge-paid-online' :
+                                                lichSu.trangThaiMoi == 'Thanh toán thất bại' ? 'badge-failed' : ''}">
+                                                <span th:text="${lichSu.trangThaiMoi} ?: 'N/A'"></span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <!-- Display NhanVienId (or name if you resolve it) -->
+                                    <td th:text="${lichSu.nhanVienId} ?: 'N/A'" style="text-align: center;"></td>
+                                    <td th:text="${lichSu.ghiChu}" style="word-break: break-word;"></td> <!-- Allow long notes to wrap -->
+                                </tr>
+                                </tbody>
+                            </table>
+                        </th:block>
+                        <th:block th:if="${lichSuTrangThais == null or #lists.isEmpty(lichSuTrangThais)}">
+                            <div class="card-body"> <!-- Add padding back for empty state -->
+                                <div class="empty-history">
+                                    <i class="fas fa-history"></i>
+                                    <p>Chưa có lịch sử trạng thái</p>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+            </div> <!-- End right-col -->
+        </div> <!-- End two-cols -->
+    </div> <!-- End container -->
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.12/sweetalert2.all.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/ // Use CDATA section for safety
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- DISPLAY FLASH MESSAGES WITH SWEETALERT ---
+        const successMessage = /*[[${success}]]*/ null; // Get success message from flash attribute
+        const errorMessage = /*[[${error}]]*/ null;     // Get error message from flash attribute
+
+        if (successMessage) {
+            Swal.fire({
+                title: 'Thành công!',
+                text: successMessage,
+                icon: 'success',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: 'var(--success-color)',
+                timer: 2500,
+                timerProgressBar: true
+            });
+        } else if (errorMessage) {
+            Swal.fire({
+                title: 'Có lỗi xảy ra!',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: 'var(--danger-color)'
+            });
+        }
+        // --- END FLASH MESSAGE DISPLAY ---
+
+
+        // --- BUTTON CONFIRMATION LOGIC ---
+        // Next Status Button Confirmation
+        const nextStatusBtn = document.getElementById('nextStatusBtn');
+        if (nextStatusBtn) {
+            nextStatusBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default form submission
+                const form = document.getElementById('nextStatusForm');
+                const nextStatusText = this.querySelector('span').textContent.trim(); // Get button text
+
+                Swal.fire({
+                    title: 'Xác nhận chuyển trạng thái',
+                    text: `Bạn có chắc chắn muốn "${nextStatusText}" cho đơn hàng này?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xác nhận',
+                    cancelButtonText: 'Hủy bỏ',
+                    confirmButtonColor: getComputedStyle(this).backgroundColor,
+                    cancelButtonColor: 'var(--gray-color)'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Submit the form if confirmed
+                    }
+                });
+            });
+        }
+
+        // Cancel Order Button Confirmation
+        const cancelOrderBtn = document.getElementById('cancelOrderBtn');
+        if (cancelOrderBtn) {
+            cancelOrderBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default form submission
+                const form = document.getElementById('cancelOrderForm');
+                const ghiChuInput = document.getElementById('ghiChuCancel');
+
+                // Basic validation: require reason for cancellation
+                if (ghiChuInput.value.trim() === '') {
+                    Swal.fire({
+                        title: 'Lỗi',
+                        text: 'Vui lòng nhập lý do hủy đơn hàng.',
+                        icon: 'error',
+                        confirmButtonText: 'Đồng ý',
+                        confirmButtonColor: 'var(--danger-color)'
+                    });
+                    ghiChuInput.focus(); // Focus the input field
+                    return; // Stop processing
+                }
+
+
+                Swal.fire({
+                    title: 'Xác nhận hủy đơn hàng',
+                    html: `Bạn có chắc chắn muốn hủy đơn hàng này?<br><small style='color: var(--danger-color);'>Hành động này không thể hoàn tác!</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xác nhận hủy',
+                    cancelButtonText: 'Không hủy',
+                    confirmButtonColor: 'var(--danger-color)',
+                    cancelButtonColor: 'var(--gray-color)'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit(); // Submit the form if confirmed
+                    }
+                });
+            });
+        }
+        // --- END BUTTON CONFIRMATION LOGIC ---
+    });
+
+    /*]]>*/
+</script>
+<script src="/js/menu.js"></script>
+<!-- Optional: Bootstrap JS if using Bootstrap components like dismissible alerts -->
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> -->
+</body>
+</html>

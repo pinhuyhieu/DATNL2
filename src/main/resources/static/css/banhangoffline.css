@@ -1,0 +1,465 @@
+/* --- PASTE THE IMPROVED CSS FROM THE PREVIOUS RESPONSE HERE --- */
+:root {
+    --primary-color: #0d6efd; /* Bootstrap Primary Blue */
+    --secondary-color: #6c757d; /* Bootstrap Secondary Gray */
+    --success-color: #198754; /* Bootstrap Success Green */
+    --danger-color: #dc3545; /* Bootstrap Danger Red */
+    --warning-color: #ffc107; /* Bootstrap Warning Yellow */
+    --info-color: #0dcaf0; /* Bootstrap Info Cyan */
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --white-color: #fff;
+    --body-bg: #f1f3f6; /* Lighter gray background */
+    --card-bg: #fff;
+    --card-border-color: #dee2e6;
+    --card-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.075);
+    --font-family-sans-serif: 'Inter', sans-serif; /* More modern font */
+}
+
+/* --- Base Styles --- */
+body {
+    background-color: var(--body-bg);
+    font-family: var(--font-family-sans-serif);
+    font-size: 0.95rem;
+}
+
+.container-fluid { /* Use fluid for better responsiveness */
+    padding: 20px;
+}
+
+/* --- Top Navigation Bar --- */
+.top-nav {
+    background-color: var(--white-color);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--card-border-color);
+    margin-bottom: 20px;
+    box-shadow: var(--card-shadow);
+    border-radius: 0.375rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.top-nav .btn i {
+    margin-right: 5px;
+}
+
+/* --- Invoice Tabs --- */
+#invoiceTabs {
+    margin-bottom: 0; /* Remove bottom margin as it's in the card */
+}
+#invoiceTabs .nav-link {
+    background-color: var(--light-color);
+    color: var(--secondary-color);
+    border: 1px solid var(--card-border-color);
+    border-bottom: none;
+    border-radius: 0.375rem 0.375rem 0 0;
+    margin-right: 3px;
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+#invoiceTabs .nav-link:hover {
+    background-color: #e2e6ea;
+    color: var(--dark-color);
+}
+#invoiceTabs .nav-link.active {
+    background-color: var(--white-color);
+    color: var(--primary-color);
+    border-color: var(--card-border-color) var(--card-border-color) var(--white-color);
+    font-weight: 600;
+}
+#invoiceTabs .nav-item:first-child .nav-link {
+    margin-left: 0;
+}
+#invoiceTabs .nav-link .close-tab { /* Style for close icon */
+    margin-left: 8px;
+    font-size: 0.8em;
+    color: var(--danger-color);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+#invoiceTabs .nav-link:hover .close-tab {
+    opacity: 1;
+}
+.empty-tab-placeholder { /* Style for the 'Trống' state */
+    font-style: italic;
+    color: var(--secondary-color);
+}
+
+/* --- Main Content Area (using Cards) --- */
+.card {
+    border: none; /* Remove default border, rely on shadow */
+    box-shadow: var(--card-shadow);
+    border-radius: 0.375rem;
+    margin-bottom: 20px;
+    background-color: var(--card-bg);
+}
+.card-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid var(--card-border-color);
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--dark-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.card-header i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* --- Product List / Cart Table --- */
+.table {
+    margin-bottom: 0; /* Remove margin if table is last element in card-body */
+    border-radius: 0.375rem; /* Apply radius if table has border */
+    overflow: hidden; /* Needed for radius on bordered tables */
+}
+.table thead th {
+    background-color: var(--light-color);
+    border-bottom: 2px solid var(--card-border-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    vertical-align: middle;
+    text-align: center;
+}
+.table tbody td {
+    vertical-align: middle;
+    border-color: #e9ecef;
+    text-align: center; /* Center align most cells */
+}
+.table tbody td.product-name-cell {
+    text-align: left; /* Align product name left */
+    font-weight: 500;
+    max-width: 200px; /* Prevent very long names breaking layout */
+    word-wrap: break-word;
+}
+
+.table img {
+    max-width: 80px; /* Smaller images */
+    height: auto;
+    border-radius: 0.25rem;
+    border: 1px solid var(--card-border-color);
+}
+
+.quantity-input {
+    border: 1px solid var(--card-border-color);
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    text-align: center;
+    width: 70px;
+}
+.quantity-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.remove-btn .btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    transition: color 0.2s ease-in-out;
+}
+.remove-btn .btn:hover {
+    color: #a71d2a; /* Darker red on hover */
+}
+
+/* --- Empty Cart Message --- */
+#emptyCartMessage {
+    background-color: #fdfdfe; /* Slightly off-white */
+    padding: 40px 20px;
+    border-radius: 0.375rem;
+    border: 1px dashed var(--card-border-color);
+    text-align: center;
+    margin-top: 20px; /* Add margin when it appears */
+}
+#emptyCartMessage img {
+    max-height: 180px; /* Adjust size */
+    opacity: 0.6;
+    margin-bottom: 15px;
+}
+#emptyCartMessage p {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+/* --- Payment Information Section --- */
+#customerForm { /* Style the toggled section */
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 15px;
+    border: 1px solid #dee2e6;
+}
+.payment-summary {
+    margin-top: 20px;
+    border-top: 1px solid var(--card-border-color);
+    padding-top: 20px;
+}
+.payment-summary div {
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+.payment-summary label {
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+.payment-summary span {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+/* Target the display span, not the hidden input */
+#thanhtienDisplay {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color); /* Use primary color for final total */
+    text-align: right;
+    margin-top: 10px;
+}
+.btn-confirm-order { /* Style for the final button */
+    font-size: 1.1rem;
+    padding: 0.8rem 1.5rem;
+}
+.btn-confirm-order i {
+    margin-right: 8px;
+}
+
+/* --- Modals --- */
+.modal-content {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.modal-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid var(--card-border-color);
+    padding: 1rem 1.5rem;
+}
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+.modal-title i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+.modal-body {
+    padding: 1.5rem; /* Default padding */
+}
+.modal-footer {
+    background-color: var(--light-color);
+    border-top: 1px solid var(--card-border-color);
+    padding: 1rem 1.5rem;
+    justify-content: flex-end;
+}
+.modal .search-box { /* Style search box in modals */
+    border-radius: 0.3rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--card-border-color);
+}
+/* General modal row styling (remove specific customer/product/voucher if using unified style) */
+.modal .product-row, .modal .customer-row, .modal .voucher-row {
+    border-bottom: 1px dashed #e0e0e0;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out;
+    padding: 12px 5px; /* Default padding for rows, might be overridden */
+}
+.modal .product-row:hover, .modal .customer-row:hover, .modal .voucher-row:hover {
+    background-color: #f8f9fa; /* Light hover effect */
+}
+.modal .product-row:last-child, .modal .customer-row:last-child, .modal .voucher-row:last-child {
+    border-bottom: none;
+}
+.modal .product-details h5, .modal .customer-details h5 { /* Adjusted from h4 */
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+.modal .product-details p, .modal .customer-details p {
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin-bottom: 0.1rem;
+}
+.modal .action-cell .btn {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.9rem;
+}
+
+/* --- Helper Classes --- */
+.fw-500 { font-weight: 500 !important; }
+.fw-600 { font-weight: 600 !important; }
+.text-small { font-size: 0.85rem !important; }
+.cursor-pointer { cursor: pointer; }
+
+/* --- Responsive Adjustments (Example) --- */
+@media (max-width: 992px) {
+    .card-columns {
+        flex-direction: column;
+    }
+    .card-columns .col-lg-7, .card-columns .col-lg-5 {
+        width: 100%;
+    }
+    /* Stack payment summary items */
+    .payment-summary .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important; /* Override justify-content */
+    }
+    .payment-summary .d-flex span {
+        margin-top: 4px;
+        margin-left: 0; /* Reset margin if needed */
+        text-align: left;
+    }
+    #thanhtienDisplay {
+        text-align: left; /* Align total left on small screens */
+    }
+}
+
+/* Status Message Styling (Keep your custom alert or use this) */
+.status-message-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1056; /* Above modals */
+    min-width: 250px;
+}
+/* Example status message styles (Adapt if needed) */
+.custom-alert {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    color: #fff; /* Default white text */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .15s linear, visibility .15s linear;
+}
+.custom-alert.show {
+    opacity: 1;
+    visibility: visible;
+}
+.custom-alert.success { background-color: var(--success-color); border-color: #107a46; }
+.custom-alert.error { background-color: var(--danger-color); border-color: #c42f3e; }
+.custom-alert.warning { background-color: var(--warning-color); border-color: #e6ac00; color: var(--dark-color); } /* Warning often needs dark text */
+.custom-alert i { margin-right: 0.5rem; }
+
+
+/* ================================================== */
+/* === NEW STYLES FOR CUSTOMER MODAL (#chonkhachhangModal) === */
+/* ================================================== */
+
+/* Adjust padding for the customer modal body if needed */
+#chonkhachhangModal .modal-body {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 1.25rem; /* Add some horizontal padding too */
+    padding-right: 1.25rem;
+}
+
+/* Style for the header row in the customer modal */
+#chonkhachhangModal .customer-header-row {
+    display: flex;          /* Use flexbox */
+    align-items: center;    /* Align items vertically */
+    gap: 15px;              /* <<< KEY: Add horizontal gap between columns (Adjust as needed) */
+    padding: 0.5rem 0;      /* Adjust vertical padding, horizontal padding is handled by gap/column styles */
+    margin-bottom: 0.5rem;  /* Space below header */
+    border-bottom: 2px solid var(--card-border-color); /* Header bottom border */
+    /* background-color: var(--light-color); /* Optional: Light background for header */
+    /* border-radius: 0.25rem 0.25rem 0 0; /* Optional: Rounded top corners */
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+/* Style for each data row in the customer modal */
+#chonkhachhangModal .customer-row {
+    display: flex;          /* Use flexbox */
+    align-items: center;    /* Align items vertically */
+    gap: 15px;              /* <<< KEY: Add horizontal gap between columns (Adjust as needed) */
+    padding: 0.75rem 0;     /* Adjust vertical padding */
+    border-bottom: 1px solid #eee; /* Separator line */
+    cursor: pointer;        /* Indicate clickable */
+    transition: background-color 0.2s ease-in-out;
+}
+
+#chonkhachhangModal .customer-row:hover {
+    background-color: #f8f9fa; /* Hover effect */
+}
+
+/* Remove bottom border from the last data row */
+#chonkhachhangModal #khachhang-list-container .customer-row:last-child {
+    border-bottom: none;
+}
+
+/* Define column widths and alignment using specific child selectors */
+/* This approach prevents needing inline styles in the HTML */
+
+/* Base style for all columns (can be empty) */
+#chonkhachhangModal .customer-header-row > div,
+#chonkhachhangModal .customer-row > div {
+    /* No base flex needed here, defined per column */
+}
+
+/* Column 1: Mã KH */
+#chonkhachhangModal .customer-header-row > div:nth-child(1),
+#chonkhachhangModal .customer-row > div:nth-child(1) {
+    flex: 1 1 120px; /* Flex-grow, flex-shrink, flex-basis (adjust basis) */
+    min-width: 100px; /* Prevent shrinking too much */
+    text-align: left;
+    font-weight: 500; /* Make Mã KH bold in data rows */
+    padding-right: 5px; /* Add a little space before the next column starts */
+}
+#chonkhachhangModal .customer-header-row > div:nth-child(1) {
+    font-weight: 600; /* Keep header bold */
+}
+
+
+/* Column 2: Tên khách hàng */
+#chonkhachhangModal .customer-header-row > div:nth-child(2),
+#chonkhachhangModal .customer-row > div:nth-child(2) {
+    flex: 3 1 0; /* Grow more, basis 0 allows flexibility */
+    text-align: left;
+    overflow: hidden; /* Prevent long names from breaking layout */
+    text-overflow: ellipsis; /* Add ellipsis (...) if name is too long */
+    white-space: nowrap; /* Keep name on one line */
+    padding-right: 5px; /* Add space before next column */
+}
+
+/* Column 3: Số điện thoại */
+#chonkhachhangModal .customer-header-row > div:nth-child(3),
+#chonkhachhangModal .customer-row > div:nth-child(3) {
+    flex: 2 1 150px; /* Adjust basis as needed */
+    min-width: 130px;
+    text-align: left;
+    padding-right: 5px; /* Add space before next column */
+}
+
+/* Column 4: Chọn button */
+#chonkhachhangModal .customer-header-row > div:nth-child(4),
+#chonkhachhangModal .customer-row > div:nth-child(4) {
+    flex: 0 0 auto; /* Don't grow, don't shrink, size based on content */
+    width: 80px;   /* Explicit width for the button column */
+    text-align: center;
+    /* No padding-right needed for the last column */
+}
+
+/* Ensure the button itself doesn't cause overflow */
+#chonkhachhangModal .customer-row .action-cell .btn {
+    /* Existing styles are likely fine */
+}
+
+/* --- End Customer Modal Styling --- */

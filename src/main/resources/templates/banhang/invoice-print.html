@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|Hóa đơn - ${hoaDon != null && hoaDon.maHoaDon != null ? hoaDon.maHoaDon : 'N/A'}|">Hóa đơn</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* CSS giữ nguyên như bạn */
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; }
+        h1, h3 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; text-align: left; }
+        .text-center { text-align: center; }
+        .text-end { text-align: right; }
+        .summary-label { font-weight: bold; }
+        .total-row { font-size: 1.2em; font-weight: bold; }
+        .d-print-none { display: none; }
+        @media print {
+            .d-print-none { display: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container mt-3 mb-3 p-4 border rounded">
+    <!-- Invoice Header -->
+    <div class="text-center border-bottom pb-3 mb-4">
+        <h1 class="h3">HÓA ĐƠN BÁN HÀNG</h1>
+        <p class="mb-0"><strong>Mã hóa đơn:</strong> <span th:text="${hoaDon != null && hoaDon.maHoaDon != null ? hoaDon.maHoaDon : 'N/A'}"></span></p>
+        <p class="mb-0"><strong>Ngày lập:</strong>
+            <span th:text="${hoaDon != null ? #temporals.format(hoaDon.ngayBan != null ? hoaDon.ngayBan : hoaDon.ngayTaoHoaDon, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}"></span>
+        </p>
+    </div>
+
+    <!-- Shop & Customer Info -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5>Thông tin cửa hàng:</h5>
+            <p class="mb-1"><strong>Tên cửa hàng:</strong> Giày SunDay Nam</p>
+            <p class="mb-1"><strong>Địa chỉ:</strong> 123456</p>
+            <p class="mb-1"><strong>Điện thoại:</strong> 0867200135</p>
+            <p class="mb-1"><strong>Website:</strong> www.sunday.com</p>
+        </div>
+        <div class="col-md-6">
+            <h5>Thông tin khách hàng:</h5>
+            <div th:if="${hoaDon?.khachHang != null}">
+                <p class="mb-1"><strong>Khách hàng:</strong> <span th:text="${hoaDon.khachHang.ten}"></span></p>
+                <p class="mb-1"><strong>Điện thoại:</strong> <span th:text="${hoaDon.khachHang.soDienThoai}"></span></p>
+<!--                <p class="mb-1" th:if="${hoaDon.diaChiNhan != null and hoaDon.diaChiNhan != 'Trống'}">-->
+<!--                    <strong>Địa chỉ GH:</strong> <span th:text="${hoaDon.diaChiNhan}"></span>-->
+<!--                </p>-->
+            </div>
+            <div th:unless="${hoaDon?.khachHang != null}">
+                <p class="mb-1"><strong>Khách hàng:</strong> Khách lẻ</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Details -->
+    <div class="mb-4">
+        <p class="mb-1"><strong>Nhân viên bán hàng:</strong> <span th:text="${hoaDon?.nhanVien?.ten != null ? hoaDon.nhanVien.ten : 'N/A'}"></span></p>
+        <p class="mb-1"><strong>Hình thức:</strong> <span th:text="${hoaDon?.kenhBanHang != null ? hoaDon.kenhBanHang : 'N/A'}"></span></p>
+    </div>
+
+    <!-- Items Table -->
+    <table class="table table-bordered table-sm">
+        <thead class="table-light">
+        <tr>
+            <th class="text-center">STT</th>
+            <th>Tên sản phẩm</th>
+            <th class="text-center">Màu</th>
+            <th class="text-center">Size</th>
+            <th class="text-end">Đơn giá</th>
+            <th class="text-center">Số lượng</th>
+            <th class="text-end">Thành tiền</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:if="${hoaDon?.chiTietHoaDons != null and !hoaDon.chiTietHoaDons.isEmpty()}">
+            <tr th:each="hdct, iterStat : ${hoaDon.chiTietHoaDons}">
+                <td class="text-center" th:text="${iterStat.count}"></td>
+                <!-- MODIFIED LINES START HERE -->
+                <td th:text="${hdct.chiTietSanPham?.sanPham?.tenSanPham ?: 'N/A'}"></td>
+                <td class="text-center" th:text="${hdct.chiTietSanPham?.mauSac?.tenMauSac ?: 'N/A'}"></td>
+                <td class="text-center" th:text="${hdct.chiTietSanPham?.kichCo?.tenKichCo ?: 'N/A'}"></td>
+                <!-- MODIFIED LINES END HERE -->
+                <td class="text-end" th:text="|${#numbers.formatDecimal(hdct.gia != null ? hdct.gia : 0, 0, 'COMMA', 0, 'POINT')} ₫|"></td>
+                <td class="text-center" th:text="${hdct.soLuong != null ? hdct.soLuong : 0}"></td>
+                <td class="text-end" th:text="|${#numbers.formatDecimal(hdct.tongTien != null ? hdct.tongTien : 0, 0, 'COMMA', 0, 'POINT')} ₫|"></td>
+            </tr>
+        </th:block>
+        <th:block th:unless="${hoaDon?.chiTietHoaDons != null and !hoaDon.chiTietHoaDons.isEmpty()}">
+            <tr>
+                <td colspan="7" class="text-center fst-italic">Không có sản phẩm nào trong hóa đơn.</td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+
+    <!-- Invoice Summary -->
+    <div class="row justify-content-end">
+        <div class="col-md-5 col-lg-4">
+            <div class="text-end border-top pt-3 mt-3">
+                <div class="mb-2">
+                    <span class="summary-label">Tiền hàng:</span>
+                    <span th:text="|${#numbers.formatDecimal(tongTienTruocGiamDisplay != null ? tongTienTruocGiamDisplay : 0, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span>
+                </div>
+                <div class="mb-2" th:if="${hoaDon?.maGiamGia != null}">
+                    <span class="summary-label">Giảm giá (<span th:text="${hoaDon.maGiamGia.tenMaGiamGia}"></span>):</span>
+                    <!-- Ensure tienGiamGiaDisplay is also handled safely -->
+                    <span th:text="|- ${#numbers.formatDecimal(tienGiamGiaDisplay != null ? tienGiamGiaDisplay : 0, 0, 'COMMA', 0, 'POINT')} ₫|">- 0 ₫</span>
+                </div>
+                <div class="mb-2" th:unless="${hoaDon?.maGiamGia != null}">
+                    <span class="summary-label">Giảm giá:</span> 0 ₫
+                </div>
+                <hr>
+                <div class="mb-2 total-row">
+                    <strong class="summary-label">Tổng cộng:</strong>
+                    <strong th:text="|${#numbers.formatDecimal(hoaDon?.tongTien != null ? hoaDon.tongTien : 0, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-muted small mt-4 pt-3 border-top">
+        <p class="mb-1">Cảm ơn quý khách đã mua hàng!</p>
+        <p class="mb-0">www.sunday.com</p>
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-center mt-4 d-print-none">
+        <button class="btn btn-primary" onclick="window.print();">
+            <i class="fas fa-print me-1"></i> In lại hóa đơn
+        </button>
+        <button class="btn btn-secondary" onclick="goBackToPOS();">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại bán hàng
+        </button>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const posUrl = /*[[@{/admin/pos}]]*/ '/admin/pos';
+
+    function goBackToPOS() {
+        window.location.href = posUrl;
+    }
+
+    window.onload = function() {
+        try {
+            window.print();
+        } catch (e) {
+            console.error("Print error:", e);
+        }
+        // Use a slight delay before navigating back to ensure print dialog appears
+        // and the user has a chance to cancel if needed.
+        if (window.onafterprint !== undefined) {
+            window.onafterprint = function() {
+                // Adding a longer delay (e.g., 1000ms) gives more time for manual print confirmation
+                // or cancellation before redirection.
+                setTimeout(goBackToPOS, 1000);
+            };
+        } else {
+            // Fallback for browsers that don't support onafterprint
+            // You might show a manual button or rely on user closing the print dialog
+            // and then interacting with the "Quay lại bán hàng" button.
+            // For simplicity, we won't auto-redirect here.
+        }
+    };
+    /*]]>*/
+</script>
+
+</body>
+</html>

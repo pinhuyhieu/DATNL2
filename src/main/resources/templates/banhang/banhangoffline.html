@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bán hàng tại quầy</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/banhangoffline.css}">
+    <!-- SweetAlert2 CSS (optional, included in JS below) -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"> -->
+    <style>
+        /* Optional: Minor adjustments */
+        .table img { max-width: 50px; height: auto; border-radius: 4px; }
+        .fw-500 { font-weight: 500; }
+        .fw-600 { font-weight: 600; }
+        .text-small { font-size: 0.85rem; }
+        .cursor-pointer { cursor: pointer; }
+        .quantity-input { width: 70px; text-align: center; }
+        .product-name-cell { min-width: 150px; } /* Prevent name wrapping too soon */
+        .search-box { border-radius: 20px; padding-left: 1.5rem; } /* Slightly rounded search */
+        .modal-xl { max-width: 90%; } /* Wider product modal */
+        .action-cell { text-align: center; }
+        .product-header-row, .customer-header-row, .voucher-header-row {
+            display: flex;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .product-row, .customer-row, .voucher-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .product-row:last-child, .customer-row:last-child, .voucher-row:last-child {
+            border-bottom: none;
+        }
+        /* Status Message Styling */
+        .status-message-container {
+            position: fixed;
+            top: 80px; /* Adjust as needed below top nav */
+            right: 20px;
+            z-index: 1050; /* Above modals */
+            width: auto;
+            max-width: 400px;
+        }
+        .custom-alert {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: .375rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
+            display: flex;
+            align-items: center;
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.5s ease-in-out;
+        }
+        .custom-alert.show {
+            opacity: 1;
+        }
+        .custom-alert i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        .custom-alert.success {
+            color: #0f5132;
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+        }
+        .custom-alert.error {
+            color: #842029;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<div class="top-nav d-flex justify-content-between align-items-center p-3 bg-light border-bottom sticky-top">
+    <a th:href="@{/admin/thong-ke}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Trở về Dashboard
+    </a>
+    <button id="createInvoiceBtn" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Tạo hóa đơn mới
+    </button>
+</div>
+
+<!-- Main Content Area -->
+<div class="container-fluid mt-3">
+
+    <!-- Invoice Tabs -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-transparent border-bottom-0 pb-0">
+            <ul id="invoiceTabs" class="nav nav-tabs card-header-tabs">
+                <!-- Active Invoices -->
+                <li class="nav-item" th:each="hoaDon : ${hoaDons}" th:classappend="${hoaDon.hoaDonId == idhoadon ? 'active' : ''}">
+                    <a class="nav-link" th:classappend="${hoaDon.hoaDonId == idhoadon ? 'active' : ''}"
+                       th:href="@{/admin/pos/muahang/{id}(id=${hoaDon.hoaDonId})}">
+                        <i class="fas fa-receipt"></i>
+                        HĐ <span th:text="${hoaDon.maHoaDon != null ? hoaDon.maHoaDon : hoaDon.hoaDonId}"></span>
+                        <!-- Optional: Add a close button to remove invoice tab (requires more JS/backend) -->
+                        <!-- <button type="button" class="btn-close btn-close-sm ms-2" aria-label="Close"></button> -->
+                    </a>
+                </li>
+
+                <!-- Placeholder if no invoices exist -->
+                <li class="nav-item" th:if="${#lists.isEmpty(hoaDons)}">
+                     <span class="nav-link disabled empty-tab-placeholder">
+                         <i class="fas fa-folder-open"></i> Chưa có hóa đơn nào
+                     </span>
+                </li>
+
+                <!-- Placeholder if invoices exist but none selected -->
+                <li class="nav-item" th:if="${not #lists.isEmpty(hoaDons) and idhoadon == null}">
+                     <span class="nav-link disabled empty-tab-placeholder">
+                         <i class="fas fa-hand-point-left"></i> Chọn hóa đơn để bắt đầu
+                     </span>
+                </li>
+            </ul>
+        </div>
+        <!-- Card body can be added if needed, but tabs are usually just in header -->
+    </div>
+
+    <!-- Main Row: Cart and Payment -->
+    <div class="row g-4">
+
+        <!-- Left Column: Cart -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-shopping-cart"></i> Giỏ hàng (Hóa đơn <strong th:text="${mahd ?: 'N/A'}">N/A</strong>)</span>
+                    <button data-bs-toggle="modal" data-bs-target="#chonsanpham"
+                            id="chonsp-button" class="btn btn-sm btn-outline-primary"
+                            th:disabled="${idhoadon == null}">
+                        <i class="fas fa-plus-circle"></i> Thêm sản phẩm
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Cart Items Table (shown if invoice selected and cart not empty) -->
+                    <div id="productTableContainer" th:classappend="${idhoadon == null or #lists.isEmpty(hoaDonCTList)} ? 'd-none' : ''">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Ảnh</th>
+                                    <th style="text-align: left;">Sản phẩm</th>
+                                    <th>Màu</th>
+                                    <th>Size</th>
+                                    <th>Đơn giá</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Xóa</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Iterate over cart items -->
+                                <tr th:each="hdct : ${hoaDonCTList}">
+                                    <td>
+                                        <img th:src="${hdct.chiTietSanPham?.sanPham?.imageUrl ?: '/images/placeholder.png'}" alt="Ảnh SP">
+                                    </td>
+                                    <td class="product-name-cell" th:text="${hdct.chiTietSanPham?.sanPham?.tenSanPham ?: 'N/A'}"></td>
+                                    <td th:text="${hdct.chiTietSanPham?.mauSac?.tenMauSac ?: 'N/A'}"></td>
+                                    <td th:text="${hdct.chiTietSanPham?.kichCo?.tenKichCo ?: 'N/A'}"></td>
+                                    <td class="fw-500 giasp" th:text="${#numbers.formatDecimal(hdct.gia ?: 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+                                    <td class="so-luong text-center">
+                                        <input type="number"
+                                               th:value="${hdct.soLuong}"
+                                               min="1"
+                                               class="form-control form-control-sm quantity-input mx-auto"
+                                               th:id="'soluong-' + ${hdct.chiTietHoaDonId}"
+                                               th:data-id="${hdct.chiTietHoaDonId}"
+                                               th:data-product="${hdct.chiTietSanPham?.chiTietSanPhamId}"
+                                               th:data-price="${hdct.gia}">
+                                        <!-- Error message display -->
+                                        <span class="error-message text-danger text-small d-block mt-1" style="display: none;"></span>
+                                    </td>
+                                    <td class="tong-tien fw-600 text-danger" th:text="${#numbers.formatDecimal(hdct.tongTien ?: 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+                                    <td class="remove-btn action-cell">
+                                        <!-- Remove button -->
+                                        <button class="btn btn-sm btn-outline-danger border-0" th:data-id="${hdct.chiTietHoaDonId}">
+                                            <i class="fas fa-trash-alt fa-lg"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Empty Cart Message (shown if invoice selected but cart is empty) -->
+                    <div id="emptyCartMessage" th:if="${idhoadon != null and #lists.isEmpty(hoaDonCTList)}" class="text-center p-5">
+                        <i class="fas fa-cart-plus fa-3x text-secondary mb-3"></i>
+                        <p class="text-secondary fw-500">Chưa có sản phẩm nào trong hóa đơn này.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#chonsanpham">
+                            <i class="fas fa-plus-circle"></i> Thêm sản phẩm ngay
+                        </button>
+                    </div>
+
+                    <!-- No Invoice Selected Message (shown if no invoice is active) -->
+                    <div id="noInvoiceMessage" th:if="${idhoadon == null}" class="text-center p-5">
+                        <i class="fas fa-info-circle fa-3x text-secondary mb-3"></i>
+                        <p class="text-secondary fw-500">Vui lòng tạo hoặc chọn một hóa đơn để bắt đầu bán hàng.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Customer & Payment -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <i class="fas fa-user-circle"></i> Thông tin khách hàng & Thanh toán
+                </div>
+                <div class="card-body">
+                    <!-- Payment Form -->
+                    <form id="paymentForm" th:action="@{/admin/pos/thanhtoan}" method="post">
+                        <!-- Hidden field for the current invoice ID -->
+                        <input type="hidden" name="idhoadon" th:value="${idhoadon}">
+
+                        <!-- Customer Selection -->
+                        <div class="mb-3">
+                            <label for="tenkh-input" class="form-label fw-500">Khách hàng</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Khách lẻ" id="tenkh-input" name="tenkh" th:value="${hoaDon?.khachHang?.ten ?: 'Khách lẻ'}">
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#chonkhachhangModal" id="chonkh-button" th:disabled="${idhoadon == null}">
+                                    <i class="fas fa-users"></i> Chọn
+                                </button>
+                            </div>
+                            <!-- Hidden field for selected customer ID -->
+                            <input type="hidden" id="idkh-input" name="idkh" th:value="${hoaDon?.khachHang?.khachHangId}">
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="mb-3">
+                            <label for="sdt-input" class="form-label fw-500">Số điện thoại</label>
+                            <input type="tel" class="form-control" placeholder="Nhập SĐT hoặc chọn KH" id="sdt-input" name="sdt" th:value="${hoaDon?.khachHang?.soDienThoai}">
+                        </div>
+
+                        <!-- Voucher Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-500">Mã giảm giá</label>
+                            <div>
+                                <!-- Button to open voucher modal -->
+                                <button type="button" class="btn btn-outline-success w-100" data-bs-toggle="modal" data-bs-target="#voucherModal" id="voucher-button" th:disabled="${idhoadon == null}">
+                                    <i class="fas fa-tags"></i> Chọn hoặc nhập mã giảm giá
+                                </button>
+                                <!-- Display area for selected voucher -->
+                                <div id="selectedVoucherInfo" class="mt-2 text-success fw-500" style="display: none;">
+                                    <i class="fas fa-check-circle"></i> Áp dụng: <span id="selectedVoucherCode" class="fw-bold"></span>
+                                    (<span id="selectedVoucherDiscountValue" class="text-muted"></span>)
+                                    <a href="#" id="removeVoucherLink" class="text-danger text-decoration-none ms-2 small">(Bỏ chọn)</a>
+                                    <!-- Hidden input for selected voucher ID -->
+                                    <input id="idvoucher-input" type="hidden" name="idvoucher">
+                                    <!-- Hidden input for discount display value -->
+                                    <input id="mucgiam-input" type="hidden" name="mucgiam" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Summary -->
+                        <div class="payment-summary border rounded p-3 mt-4 bg-light">
+                            <h5 class="mb-3">Tổng kết hóa đơn</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-file-invoice-dollar me-2 text-secondary"></i>Mã HĐ:</span>
+                                <span class="fw-500" th:text="${mahd ?: 'N/A'}"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-boxes-stacked me-2 text-secondary"></i>Tiền hàng:</span>
+                                <!-- Display formatted subtotal -->
+                                <span id="tongTienDisplay" class="fw-500" th:text="${tongTien ?: '0 ₫'}">0 ₫</span>
+                                <!-- Hidden input for raw subtotal -->
+                                <input type="hidden" id="tongtien-input" name="tongtien" th:value="${tongtien ?: 0}">
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-percent me-2 text-secondary"></i>Giảm giá:</span>
+                                <!-- Display formatted discount amount -->
+                                <span id="mucgiamDisplay" class="fw-500 text-danger" th:text="${tienGiamGiaDisplay != null ? #numbers.formatDecimal(tienGiamGiaDisplay, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}">0 ₫</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="fs-5">Tổng cộng:</strong>
+                                <!-- Display formatted final total -->
+                                <strong class="fs-4 text-primary" id="thanhtienDisplay" th:text="${thanhtien ?: '0 ₫'}">0 ₫</strong>
+                                <!-- Hidden input for raw final total -->
+                                <input type="hidden" id="thanhtien-input-hidden" name="thanhtien" th:value="${thanhTien ?: 0}">
+                            </div>
+                        </div>
+
+                        <!-- Checkout Button -->
+                        <button type="button" id="confirmOrderBtn" class="btn btn-success w-100 mt-4 btn-lg btn-confirm-order" th:disabled="${idhoadon == null}">
+                            <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+                        </button>
+                    </form>
+                </div> <!-- End card-body -->
+            </div> <!-- End card -->
+        </div> <!-- End col-lg-5 -->
+    </div> <!-- End row -->
+
+</div> <!-- End container-fluid -->
+
+
+<!-- Modal: Select Product -->
+<div class="modal fade" id="chonsanpham" tabindex="-1" aria-labelledby="chonsanphamLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="chonsanphamLabel">
+                    <i class="fas fa-boxes"></i> Chọn sản phẩm thêm vào hóa đơn
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Input -->
+                <div class="mb-3">
+                    <input type="text" id="searchsanpham" onkeyup="updateProductList()" placeholder="Tìm theo tên, mã, màu, size..." class="form-control search-box">
+                </div>
+
+                <!-- Product List Header (Desktop) -->
+                <div class="d-none d-md-flex product-header-row">
+                    <div style="flex: 0 0 80px;" class="action-cell">Ảnh</div>
+                    <div style="flex: 3; padding-left: 10px;">Sản phẩm</div>
+                    <div style="flex: 1;" class="action-cell">Có sẵn</div>
+                    <div style="flex: 1; text-align: right;">Đơn giá</div>
+                    <div style="flex: 0 0 100px;" class="action-cell">Thêm</div>
+                </div>
+
+                <!-- Product List Container -->
+                <div id="product-list-container">
+                    <!-- Iterate over products with available stock -->
+                    <div th:each="spct : ${lsspct}"
+                         th:if="${spct.availableStock > 0}"
+                         class="product-row">
+                        <!-- Hidden data -->
+                        <div style="display:none;" class="product-data"
+                             th:data-id-spct="${spct.chiTietSanPhamId}"
+                             th:data-gia="${spct.giaBan}">
+                        </div>
+                        <!-- Image -->
+                        <div class="product-image" style="flex: 0 0 80px; text-align: center;">
+                            <img th:src="${spct.sanPham?.imageUrl ?: '/images/placeholder.png'}" class="img-thumbnail" style="max-width: 60px;" alt="Ảnh SP">
+                        </div>
+                        <!-- Details -->
+                        <div class="product-details" style="flex: 3; padding-left: 10px;">
+                            <h6 class="mb-1" th:text="${spct.sanPham?.tenSanPham ?: 'N/A'}"></h6>
+                            <p class="text-muted text-small mb-0">
+                                Màu: <span th:text="${spct.mauSac?.tenMauSac ?: 'N/A'}"></span> |
+                                Size: <span th:text="${spct.kichCo?.tenKichCo ?: 'N/A'}"></span> |
+                                CL: <span th:text="${spct.sanPham?.chatLieu?.tenChatLieu ?: 'N/A'}"></span>
+                            </p>
+                        </div>
+                        <!-- Available Stock -->
+                        <div class="product-stock action-cell" style="flex: 1; font-weight: 500;">
+                            <span th:text="${spct.availableStock}"></span>
+                            <small class="d-block text-muted">(Tồn: <span th:text="${spct.soLuongTon}"></span>)</small>
+                        </div>
+                        <!-- Price -->
+                        <div class="product-price" style="flex: 1; text-align: right; font-weight: 600; color: var(--bs-danger);" th:text="${#numbers.formatDecimal(spct.giaBan ?: 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
+                        <!-- Action -->
+                        <div class="product-action action-cell" style="flex: 0 0 100px;">
+                            <button type="button" class="btn btn-sm btn-primary btn-add-product" th:disabled="${spct.availableStock <= 0}">
+                                <i class="fas fa-plus"></i> Thêm
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Message if no available products -->
+                    <div th:if="${#lists.isEmpty(lsspct) or #lists.isEmpty(#lists.toList(lsspct).?[availableStock > 0])}"
+                         class="text-center p-4 text-muted">
+                        Không tìm thấy sản phẩm nào có sẵn.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Select Customer -->
+<div class="modal fade" id="chonkhachhangModal" tabindex="-1" aria-labelledby="chonkhachhangModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="chonkhachhangModalLabel">
+                    <i class="fas fa-user-check"></i> Chọn khách hàng
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Input -->
+                <div class="mb-3">
+                    <input type="text" id="searchkhachhang" placeholder="Tìm theo tên, SĐT, mã khách hàng..." class="form-control search-box" onkeyup="findkhachhang()">
+                </div>
+
+                <!-- Customer List Header (Desktop) -->
+                <div class="d-none d-md-flex customer-header-row">
+                    <div style="flex: 1; text-align: left;">Mã KH</div>
+                    <div style="flex: 3; text-align: left;">Tên khách hàng</div>
+                    <div style="flex: 2; text-align: left;">Số điện thoại</div>
+                    <div style="flex: 1;" class="action-cell">Chọn</div>
+                </div>
+
+                <!-- Customer List Container -->
+                <div id="khachhang-list-container">
+                    <!-- Iterate over customers -->
+                    <div th:each="kh : ${listkh}" th:if="${kh.soDienThoai != null}" class="customer-row cursor-pointer"
+                         th:data-id="${kh.khachHangId}" onclick="chonkh(this)">
+                        <div th:text="${kh.maKhachHang}"></div>
+                        <div th:text="${kh.ten}"></div>
+                        <div th:text="${kh.soDienThoai}"></div>
+                        <div class="action-cell">
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Message if no customers -->
+                    <div th:if="${#lists.isEmpty(listkh)}" class="text-center p-4 text-muted">
+                        Chưa có dữ liệu khách hàng.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!-- Select Khach Le Button -->
+                <button type="button" class="btn btn-outline-secondary me-auto" id="selectKhachLeBtn">
+                    <i class="fas fa-user-tag"></i> Chọn khách lẻ
+                </button>
+                <!-- Close Button -->
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Select Voucher -->
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="voucherModalLabel">
+                    <i class="fas fa-ticket-alt"></i> Chọn mã giảm giá
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Input -->
+                <div class="mb-3">
+                    <input type="text" id="modalSearchInput" placeholder="Tìm kiếm theo mã voucher..." class="form-control search-box" onkeyup="searchInModal()">
+                </div>
+
+                <!-- Voucher List Header (Desktop) -->
+                <div class="d-none d-md-flex voucher-header-row">
+                    <div style="flex: 2; text-align: left;">Mã Voucher</div>
+                    <div style="flex: 1; text-align: right;">SL còn lại</div>
+                    <div style="flex: 2; text-align: right;">ĐH Tối thiểu</div>
+                    <div style="flex: 2; text-align: right;">Mức giảm</div>
+                    <div style="flex: 1;" class="action-cell">Chọn</div>
+                </div>
+
+                <!-- Voucher List Container -->
+                <div id="voucher-list-container">
+                    <!-- Iterate over vouchers -->
+                    <div th:each="vc : ${lsvoucher}" class="voucher-row cursor-pointer"
+                         th:data-code="${vc.tenMaGiamGia}" onclick="chonVoucher(this)">
+                        <div style="flex: 2; text-align: left;" class="fw-500" th:text="${vc.tenMaGiamGia}"></div>
+                        <div style="flex: 1; text-align: right;" th:text="${vc.soLuong}"></div>
+                        <div style="flex: 2; text-align: right;" th:text="${#numbers.formatDecimal(vc.giaTriToiThieuDonHang ?: 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
+                        <div style="flex: 2; text-align: right;" th:text="${vc.loaiGiamGia == 'Phần trăm' ? vc.giaTriGiamGia + '%' : #numbers.formatDecimal(vc.giaTriGiamGia ?: 0, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></div>
+                        <div style="flex: 1;" class="action-cell">
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Message if no vouchers -->
+                    <div th:if="${#lists.isEmpty(lsvoucher)}" class="text-center p-4 text-muted">
+                        Không có mã giảm giá nào hợp lệ.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Message Container (for flash messages) -->
+<div class="status-message-container">
+    <!-- Success Message -->
+    <div th:if="${message}" class="custom-alert success" role="alert">
+        <i class="fas fa-check-circle"></i> <span th:utext="${message}"></span> <!-- utext to allow basic formatting like <br> -->
+    </div>
+    <!-- Error Message -->
+    <div th:if="${loi}" class="custom-alert error" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> <span th:utext="${loi}"></span> <!-- utext to allow basic formatting -->
+    </div>
+</div>
+
+
+<!-- JavaScript Libraries -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Inline JavaScript -->
+<script th:inline="javascript">
+    // Helper function to format numbers as Vietnamese currency
+    function formatCurrency(value) {
+        const numValue = Number(value);
+        if (isNaN(numValue)) {
+            // console.warn("formatCurrency received non-numeric value:", value);
+            return "0 ₫"; // Return default value for invalid input
+        }
+        // Use Intl.NumberFormat for reliable currency formatting
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(numValue);
+    }
+
+    // Function to display flash messages using SweetAlert
+    function showFlashMessages() {
+        const successMessage = /*[[${message}]]*/ null;
+        const errorMessage = /*[[${loi}]]*/ null;
+        const statusContainer = $('.status-message-container');
+
+        // Clear previous messages immediately
+        statusContainer.empty();
+
+        // Use SweetAlert for better user experience
+        if (successMessage) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                html: successMessage, // Allow basic HTML like <br>
+                timer: 3000, // Auto-close after 3 seconds
+                timerProgressBar: true,
+                showConfirmButton: false,
+                toast: true, // Use toast notification style
+                position: 'top-end' // Position at top-right
+            });
+        }
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Có lỗi xảy ra!',
+                html: errorMessage.replace(/;/g, '<br>'), // Replace semicolons with line breaks for readability
+                confirmButtonColor: '#dc3545'
+                // Not using toast for errors to ensure user acknowledges them
+            });
+        }
+
+        // Fallback using the custom div (can be removed if Swal is always preferred)
+        /*
+        if (successMessage) {
+            const alertDiv = $('<div class="custom-alert success show" role="alert"><i class="fas fa-check-circle"></i> <span ></span></div>');
+            alertDiv.find('span').html(successMessage);
+            statusContainer.append(alertDiv);
+        }
+        if (errorMessage) {
+            const alertDiv = $('<div class="custom-alert error show" role="alert"><i class="fas fa-exclamation-triangle"></i> <span></span></div>');
+            alertDiv.find('span').html(errorMessage.replace(/;/g, '<br>')); // Format multi-line errors
+            statusContainer.append(alertDiv);
+        }
+        // Auto-hide messages after a delay
+        setTimeout(() => {
+            statusContainer.find('.custom-alert').fadeOut(500, function() { $(this).remove(); });
+        }, 5000); // Hide after 5 seconds
+        */
+    }
+
+
+    // Debounce timer for quantity updates
+    let quantityDebounceTimer;
+
+    // Document Ready Function
+    $(document).ready(function() {
+        // Show flash messages on page load
+        showFlashMessages();
+
+        // --- Event Handlers ---
+
+        // Create New Invoice Button
+        $('#createInvoiceBtn').on('click', function() {
+            const maxInvoices = 5; // Set your desired limit
+            const currentInvoices = $('#invoiceTabs .nav-item:not(:has(.empty-tab-placeholder))').length;
+
+            if (currentInvoices >= maxInvoices) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Đã đạt giới hạn',
+                    text: `Bạn chỉ có thể mở tối đa ${maxInvoices} hóa đơn chờ cùng lúc. Vui lòng thanh toán hoặc hủy bớt.`,
+                    confirmButtonColor: '#ffc107'
+                });
+                return;
+            }
+
+            const btn = $(this);
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tạo...');
+
+            $.ajax({
+                url: '/admin/pos/taohd',
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response && response.id && response.mahoadon) {
+                        // Redirect to the new invoice tab
+                        window.location.href = '/admin/pos/muahang/' + response.id;
+                    } else if (response && response.error) {
+                        Swal.fire('Lỗi', response.error, 'error');
+                    }
+                    else {
+                        Swal.fire('Lỗi', 'Không thể tạo hóa đơn mới. Phản hồi không hợp lệ.', 'error');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error creating invoice:", textStatus, errorThrown);
+                    let errorMsg = 'Đã xảy ra lỗi khi tạo hóa đơn mới. Vui lòng thử lại.';
+                    if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                        errorMsg = jqXHR.responseJSON.error;
+                    }
+                    Swal.fire({
+                        icon: 'error', title: 'Lỗi tạo hóa đơn', text: errorMsg, confirmButtonColor: '#dc3545'
+                    });
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html(originalText); // Restore button
+                }
+            });
+        });
+
+        // Add Product to Cart Button (Event Delegation for dynamically added products)
+        $('#product-list-container').on('click', '.btn-add-product', function() {
+            const productRow = $(this).closest('.product-row');
+            const productData = productRow.find('.product-data');
+            const idSanPhamCT = productData.data('id-spct');
+            const gia = productData.data('gia');
+            const soLuong = 1; // Add one item at a time
+
+            const dataToSend = { idSanPhamCT: idSanPhamCT, gia: gia, soLuong: soLuong };
+            const btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+
+            $.ajax({
+                url: '/admin/pos/taohdct',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dataToSend),
+                success: function(response) {
+                    // Success: show message and reload to update cart
+                    Swal.fire({ icon: 'success', title: response, timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+                    setTimeout(() => location.reload(), 1000); // Reload after slight delay
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error adding product:", textStatus, errorThrown);
+                    let errorMessage = 'Thêm sản phẩm thất bại.';
+                    if (jqXHR.responseText) { // Use plain text response from controller
+                        errorMessage = jqXHR.responseText;
+                    }
+                    Swal.fire('Lỗi!', errorMessage, 'error');
+                    btn.prop('disabled', false).html('<i class="fas fa-plus"></i> Thêm'); // Restore button
+                }
+            });
+        });
+
+        // Remove Product from Cart Button (Event Delegation)
+        $('#productTableContainer').on('click', '.remove-btn .btn', function () {
+            const idHoaDonCT = $(this).data('id');
+            const $rowToRemove = $(this).closest('tr'); // Get the table row
+
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                text: "Bạn có chắc chắn muốn xóa sản phẩm này khỏi hóa đơn?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash-alt"></i> Xóa ngay',
+                cancelButtonText: '<i class="fas fa-times"></i> Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading state immediately
+                    Swal.fire({ title: 'Đang xóa...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    $.ajax({
+                        url: '/admin/pos/delete',
+                        method: 'POST',
+                        data: { idHoaDonCT: idHoaDonCT }, // Send ID as form data
+                        dataType: 'json', // Expect JSON response
+                        success: function (response) {
+                            if(response.success) {
+                                Swal.fire({ icon: 'success', title: response.success, timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
+                                // Update totals display immediately based on response
+                                updateCartTotals(response.newCartTotal);
+                                // Remove the row visually
+                                $rowToRemove.fadeOut(300, function() { $(this).remove(); });
+                                // Check if cart is now empty
+                                if ($('#productTableContainer tbody tr').length === 1) { // Check if only the removed row was left
+                                    $('#productTableContainer').addClass('d-none');
+                                    $('#emptyCartMessage').removeClass('d-none');
+                                }
+                            } else {
+                                Swal.fire('Lỗi!', response.error || 'Xóa thất bại không rõ nguyên nhân.', 'error');
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error("Lỗi khi xóa:", errorThrown);
+                            let errorMsg = 'Xóa thất bại. Vui lòng thử lại.';
+                            if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                                errorMsg = jqXHR.responseJSON.error;
+                            } else if (jqXHR.responseText) {
+                                errorMsg = jqXHR.responseText; // Handle plain text errors too
+                            }
+                            Swal.fire('Lỗi!', errorMsg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+
+        // Update Product Quantity Input (Event Delegation with Debounce)
+        $('#productTableContainer').on('input change', '.quantity-input', function() {
+            clearTimeout(quantityDebounceTimer); // Clear previous timer
+            const input = $(this);
+            const idHoaDonCT = input.data('id');
+            const idSanPhamCT = input.data('product');
+            const unitPrice = parseFloat(input.data('price')) || 0;
+            const $errorMessage = input.next('.error-message'); // Get error message span
+
+            let newQuantity;
+            try {
+                newQuantity = parseInt(input.val());
+                if (isNaN(newQuantity) || newQuantity < 1) {
+                    $errorMessage.text('Số lượng phải >= 1.').show();
+                    input.addClass('is-invalid'); // Add Bootstrap error class
+                    return; // Stop if invalid
+                }
+                $errorMessage.hide().text(''); // Clear error message
+                input.removeClass('is-invalid'); // Remove error class
+            } catch (e) {
+                $errorMessage.text('Số lượng không hợp lệ.').show();
+                input.addClass('is-invalid');
+                return;
+            }
+
+
+            // Update row total display immediately (client-side calculation for responsiveness)
+            const newRowTotal = unitPrice * newQuantity;
+            input.closest('tr').find('.tong-tien').text(formatCurrency(newRowTotal));
+            // Also update overall totals temporarily on client-side (optional but good UX)
+            // updateCartTotalsClientSide(); // You'd need to implement this helper
+
+            // Debounce the AJAX call
+            quantityDebounceTimer = setTimeout(() => {
+                input.prop('disabled', true); // Disable input during AJAX
+                const dataToSend = {
+                    idHoadon: idHoaDonCT, // This DTO field expects ChiTietHoaDon ID
+                    idSanPhamCT: idSanPhamCT,
+                    soLuong: newQuantity
+                    // No need to send thanhTien, server calculates it
+                };
+
+                $.ajax({
+                    url: '/admin/pos/update',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSend),
+                    success: function(response) {
+                        // Success: Maybe show a subtle confirmation, update totals firmly
+                        // updateCartTotals(response.newCartTotal); // If backend sends new total
+                        // For simplicity now, just reload on success/error to ensure sync
+                        location.reload();
+                        // Swal.fire({ icon: 'success', title: 'Đã cập nhật!', timer: 1000, showConfirmButton: false, toast: true, position: 'top-end' });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX Error updating quantity:", textStatus, errorThrown);
+                        let errorMessage = 'Cập nhật số lượng thất bại.';
+                        if (jqXHR.responseText) { // Use plain text response
+                            errorMessage = jqXHR.responseText;
+                        }
+                        Swal.fire({icon: 'error', title: 'Lỗi!', text: errorMessage})
+                            .then(() => {
+                                location.reload(); // Reload to reset to last valid state
+                            });
+                    },
+                    complete: function() {
+                        input.prop('disabled', false); // Re-enable input
+                    }
+                });
+            }, 750); // Wait 750ms after user stops typing/changing
+        });
+
+        // Select "Khach Le" Button
+        $('#selectKhachLeBtn').on('click', function() {
+            $('#idkh-input').val(''); // Clear customer ID
+            $('#tenkh-input').val('Khách lẻ'); // Set name to default
+            $('#sdt-input').val(''); // Clear phone
+            $('#diachi-input').val(''); // Clear address
+            $('#chonkhachhangModal').modal('hide'); // Close modal
+        });
+
+        // Remove Selected Voucher Link
+        $('#removeVoucherLink').on('click', function(e) {
+            e.preventDefault();
+            // Clear voucher inputs
+            $('#idvoucher-input').val('');
+            $('#mucgiam-input').val('0');
+            // Reset displays
+            $('#mucgiamDisplay').text('0 ₫');
+            $('#selectedVoucherInfo').hide();
+            $('#selectedVoucherCode').text('');
+            $('#selectedVoucherDiscountValue').text('');
+            $('#voucher-button').show(); // Show the select button again
+
+            // Recalculate final total based on original subtotal
+            const originalTotal = parseFloat($('#tongtien-input').val()) || 0;
+            $('#thanhtien-input-hidden').val(originalTotal);
+            $('#thanhtienDisplay').text(formatCurrency(originalTotal));
+        });
+
+        // Confirm Order Button
+        $('#confirmOrderBtn').on('click', function(e) {
+            e.preventDefault(); // Prevent default form submission
+
+            const idHoaDon = $('input[name="idhoadon"]').val();
+            if (!idHoaDon || idHoaDon === "0" || idHoaDon === "") {
+                Swal.fire('Chưa chọn hóa đơn', 'Vui lòng chọn hoặc tạo hóa đơn trước khi thanh toán.', 'warning');
+                return;
+            }
+
+            // Check if cart is empty client-side (backend double-checks)
+            if ($('#productTableContainer tbody tr').length === 0) {
+                Swal.fire('Giỏ hàng trống', 'Vui lòng thêm sản phẩm vào hóa đơn trước khi thanh toán.', 'warning');
+                return;
+            }
+
+            // Optional: Client-side check for required fields if needed (e.g., phone for delivery)
+
+            // Confirmation Dialog
+            const customerName = $('#tenkh-input').val() || 'Khách lẻ';
+            const finalTotal = $('#thanhtienDisplay').text(); // Get formatted final total
+
+            Swal.fire({
+                title: 'Xác nhận thanh toán?',
+                html: `
+                        Khách hàng: <strong>${customerName}</strong><br>
+                        Tổng cộng: <strong class="text-primary fs-5">${finalTotal}</strong><br><br>
+                        Hành động này sẽ hoàn tất hóa đơn và cập nhật kho. Bạn có chắc chắn?
+                    `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754', // Green
+                cancelButtonColor: '#6c757d', // Gray
+                confirmButtonText: '<i class="fas fa-check-circle"></i> Đồng ý & Thanh toán',
+                cancelButtonText: '<i class="fas fa-times"></i> Xem lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Add loading state to button and submit
+                    const btn = $(this);
+                    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...');
+                    $('#paymentForm').submit(); // Submit the form
+                }
+            });
+        });
+
+        // --- Initial Setup ---
+        // Check if a voucher was already applied on page load and update UI
+        const initialVoucherId = /*[[${hoaDon?.maGiamGia?.maGiamGiaId}]]*/ null;
+        const initialVoucherCode = /*[[${hoaDon?.maGiamGia?.tenMaGiamGia}]]*/ null;
+        const initialDiscountDisplay = /*[[${mucgiam}]]*/ null; // Get discount display from controller if passed
+
+        if(initialVoucherId && initialVoucherCode) {
+            $('#idvoucher-input').val(initialVoucherId);
+            $('#mucgiam-input').val(initialDiscountDisplay || '0'); // Use controller value if available
+            $('#selectedVoucherCode').text(initialVoucherCode);
+            // Need to reconstruct discount value display if not passed directly
+            // $('#selectedVoucherDiscountValue').text(...)
+            $('#selectedVoucherInfo').show();
+            $('#voucher-button').hide();
+        }
+
+    }); // End Document Ready
+
+    // --- Global Scope Functions ---
+
+    // Function to handle customer selection from modal
+    window.chonkh = function(element) {
+        const customerId = $(element).data('id');
+        const $row = $(element); // Get the clicked row
+
+        // Show loading indicator (optional)
+        $row.addClass('bg-light'); // Highlight row briefly
+
+        $.ajax({
+            url: '/admin/pos/chonkh',
+            method: 'GET',
+            data: { id: customerId },
+            dataType: 'json',
+            success: function(response) {
+                if (response && !response.error) {
+                    $('#idkh-input').val(response.id || '');
+                    $('#tenkh-input').val(response.tenkh || 'Khách lẻ');
+                    $('#sdt-input').val(response.sdt || '');
+                    $('#diachi-input').val(response.diachi !== 'Trống' ? response.diachi : ''); // Populate address if available
+
+                    $('#chonkhachhangModal').modal('hide'); // Close modal
+                } else {
+                    Swal.fire('Lỗi', response.error || 'Không nhận được thông tin khách hàng.', 'error');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX Error selecting customer:", textStatus, errorThrown);
+                Swal.fire('Lỗi', 'Không thể tải thông tin khách hàng. Vui lòng thử lại.', 'error');
+            },
+            complete: function() {
+                $row.removeClass('bg-light'); // Remove highlight
+            }
+        });
+    };
+
+    // Function to handle voucher selection from modal
+    window.chonVoucher = function(element) {
+        const voucherCode = $(element).data('code');
+        const $row = $(element);
+        $row.addClass('bg-light'); // Highlight selection
+
+        $.ajax({
+            url: '/admin/pos/selectvc',
+            method: 'GET',
+            data: { id: voucherCode },
+            dataType: 'json', // Expect JSON response
+            success: function(response) {
+                if (response && !response.error) {
+                    // Update hidden inputs
+                    $('#idvoucher-input').val(response.idvoucher || '');
+                    $('#mucgiam-input').val(response.mucgiam || '0'); // Store display value like "10%" or "50,000 ₫"
+                    $('#thanhtien-input-hidden').val(response.thanhTien || 0); // Update raw final total
+                    //$('#tongtien-input').val(response.tt || 0); // Subtotal shouldn't change here
+
+                    // Update display elements
+                    $('#mucgiamDisplay').text(formatCurrency(response.giamgiaRaw || 0)); // Display formatted raw discount amount
+                    $('#thanhtienDisplay').text(response.thanhtien ? response.thanhtien : '0 ₫'); // Display formatted final total
+                    $('#selectedVoucherCode').text(voucherCode);
+                    $('#selectedVoucherDiscountValue').text(response.mucgiam || ''); // Show discount rule (e.g., 10%)
+
+                    // Show selected info, hide button
+                    $('#selectedVoucherInfo').show();
+                    $('#voucher-button').hide();
+
+                    $('#voucherModal').modal('hide'); // Close modal
+                } else {
+                    // Show specific error from backend
+                    Swal.fire('Không thể áp dụng', response.error || 'Voucher không hợp lệ hoặc không đủ điều kiện.', 'warning');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX Error selecting voucher:", textStatus, errorThrown);
+                let errorMsg = 'Lỗi khi chọn voucher.';
+                if(jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                    errorMsg = jqXHR.responseJSON.error;
+                } else if (jqXHR.responseText) { // Handle plain text error
+                    try { errorMsg = JSON.parse(jqXHR.responseText).error || jqXHR.responseText } catch(e){ errorMsg = jqXHR.responseText; }
+                }
+                Swal.fire('Lỗi!', errorMsg, 'error');
+            },
+            complete: function() {
+                $row.removeClass('bg-light'); // Remove highlight
+            }
+        });
+    };
+
+    // Function to filter vouchers in the modal
+    window.searchInModal = function() {
+        const input = document.getElementById("modalSearchInput");
+        const filter = input.value.toUpperCase();
+        const container = document.getElementById("voucher-list-container");
+        const rows = container.getElementsByClassName("voucher-row");
+
+        for (let i = 0; i < rows.length; i++) {
+            const codeCell = rows[i].getElementsByTagName("div")[0]; // First div contains the code
+            if (codeCell) {
+                const txtValue = codeCell.textContent || codeCell.innerText;
+                rows[i].style.display = txtValue.toUpperCase().includes(filter) ? "flex" : "none";
+            }
+        }
+    }
+
+    // Function to filter customers in the modal
+    window.findkhachhang = function() {
+        const input = document.getElementById("searchkhachhang");
+        const filter = input.value.toUpperCase();
+        const container = document.getElementById("khachhang-list-container");
+        const rows = container.getElementsByClassName("customer-row");
+
+        for (let i = 0; i < rows.length; i++) {
+            const codeCell = rows[i].getElementsByTagName("div")[0];
+            const nameCell = rows[i].getElementsByTagName("div")[1];
+            const phoneCell = rows[i].getElementsByTagName("div")[2];
+
+            const codeTxt = codeCell ? (codeCell.textContent || codeCell.innerText).toUpperCase() : "";
+            const nameTxt = nameCell ? (nameCell.textContent || nameCell.innerText).toUpperCase() : "";
+            const phoneTxt = phoneCell ? (phoneCell.textContent || phoneCell.innerText).toUpperCase() : "";
+
+            rows[i].style.display = (codeTxt.includes(filter) || nameTxt.includes(filter) || phoneTxt.includes(filter)) ? "flex" : "none";
+        }
+    }
+
+    // Function to filter products in the modal
+    window.updateProductList = function() {
+        const input = document.getElementById("searchsanpham");
+        const filter = input.value.toUpperCase();
+        const container = document.getElementById("product-list-container");
+        const rows = container.getElementsByClassName("product-row");
+
+        for (let i = 0; i < rows.length; i++) {
+            const nameCell = rows[i].querySelector(".product-details h6");
+            const detailsCell = rows[i].querySelector(".product-details p"); // Search details too
+
+            const nameTxt = nameCell ? (nameCell.textContent || nameCell.innerText).toUpperCase() : "";
+            const detailsTxt = detailsCell ? (detailsCell.textContent || detailsCell.innerText).toUpperCase() : "";
+
+            rows[i].style.display = (nameTxt.includes(filter) || detailsTxt.includes(filter)) ? "flex" : "none";
+        }
+    }
+
+    // Helper function to update cart total display elements
+    function updateCartTotals(rawTotal) {
+        const formattedTotal = formatCurrency(rawTotal);
+        $('#tongTienDisplay').text(formattedTotal);
+        $('#tongtien-input').val(rawTotal);
+
+        // If no voucher applied, final total is same as subtotal
+        if (!$('#idvoucher-input').val()) {
+            $('#thanhtienDisplay').text(formattedTotal);
+            $('#thanhtien-input-hidden').val(rawTotal);
+        } else {
+            // TODO: If a voucher is applied, need to re-trigger voucher calculation
+            // Easiest might be to briefly show the select button again or add a 'recalculate' button
+            console.warn("Cart total updated, but voucher needs re-application for accurate final total.");
+            // For now, might just clear voucher on item removal/update for simplicity:
+            // $('#removeVoucherLink').click();
+        }
+    }
+
+</script>
+
+</body>
+</html>

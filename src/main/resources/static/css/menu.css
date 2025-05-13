@@ -1,0 +1,434 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/*
+ *  Phần này import font Poppins từ Google Fonts, bạn có thể thay đổi font
+ *  tại đây hoặc thay thế bằng font chữ khác nếu muốn.
+ */
+
+:root {
+    /*
+     *  Các biến màu được khai báo ở đây, đây là nơi bạn có thể tùy chỉnh
+     *  màu sắc của toàn bộ trang web một cách dễ dàng.
+     *  --base-clr: Màu nền chính của trang web.
+     *  --line-clr: Màu cho các đường kẻ, border.
+     *  --hover-clr: Màu nền khi hover vào các phần tử.
+     *  --text-clr: Màu chữ chính.
+     *  --accent-clr: Màu nhấn, thường dùng cho các button, link nổi bật.
+     *  --secondary-text-clr: Màu chữ phụ, thường dùng cho mô tả.
+     *  --active-color: Màu chữ khi trạng thái hoạt động.
+     *  --inactive-color: Màu chữ khi trạng thái không hoạt động.
+     */
+    --base-clr: #ffffff;         /* Màu trắng */
+    --line-clr: #000000; /* Màu đen */
+    --hover-clr: #ffd9b3;       /* Màu cam nhạt */
+    --text-clr: #111111;         /* Màu đen */
+    --accent-clr: #ff6600;       /* Màu cam đậm */
+    --secondary-text-clr: #666666; /* Màu xám đậm */
+    --active-color: #28a745;   /* Màu xanh lá cây */
+    --inactive-color: #dc3545;   /* Màu đỏ */
+}
+
+*,
+*::before,
+*::after {
+    /*
+     *  Đặt margin, padding về 0 và sử dụng box-sizing: border-box cho
+     *  tất cả các phần tử. Điều này giúp dễ dàng tính toán kích thước
+     *  của các phần tử.
+     */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    /*
+     *  Đặt font chữ mặc định và line-height cho toàn bộ trang web.
+     *  Bạn có thể thay đổi font-family tại đây.
+     */
+    font-family: Arial, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.5rem;
+}
+
+body {
+    /*
+     *  Thiết lập body với min-height, background và màu chữ. Sử dụng
+     *  grid layout để chia trang thành sidebar và main content.
+     */
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--base-clr);
+    color: var(--text-clr);
+    display: grid;
+    grid-template-columns: auto 1fr; /* Sidebar auto rộng, main content co giãn */
+}
+
+#sidebar {
+    /*
+     *  Styling cho sidebar, bao gồm chiều cao, chiều rộng, padding,
+     *  màu nền, border, vị trí sticky và transition.
+     */
+    height: 100vh;
+    width: 280px;
+    padding: 5px 1em;
+    background-color: var(--base-clr);
+    border-right: 1px solid var(--line-clr);
+    position: sticky;
+    top: 0;
+    align-self: start;
+    transition: 300ms ease-in-out;
+    overflow: hidden;
+    text-wrap: nowrap; /* Ngăn văn bản xuống dòng */
+}
+
+#sidebar.close {
+    /*
+     *  Styling cho sidebar khi ở trạng thái đóng.
+     */
+    padding: 5px;
+    width: 60px;
+}
+
+#sidebar ul {
+    /*
+     *  Loại bỏ kiểu list mặc định.
+     */
+    list-style: none;
+}
+
+#sidebar > ul > li:first-child {
+    /*
+     *  Styling cho phần tử logo đầu tiên trong sidebar.
+     */
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+#sidebar > ul > li:first-child .logo {
+    /*
+     *  Styling cho logo, set font-weight cho chữ đậm.
+     */
+    font-weight: 600;
+}
+
+#sidebar li.active a {
+    /*
+     *  Styling cho link active trong sidebar.
+     */
+    color: var(--accent-clr);
+}
+
+#sidebar li.active a svg {
+    /*
+     *  Styling cho icon active trong sidebar.
+     */
+    fill: var(--accent-clr);
+}
+
+#sidebar a,
+#sidebar .dropdown-btn,
+#sidebar .logout-btn,
+#sidebar .logo {
+    /*
+     *  Styling chung cho các button, link, logo trong sidebar.
+     */
+    border-radius: .5em;
+    padding: .85em;
+    text-decoration: none;
+    color: var(--text-clr);
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+#sidebar a:hover,
+#sidebar .dropdown-btn:hover,
+#sidebar .logout-btn:hover {
+    /*
+     *  Styling khi hover vào các button, link trong sidebar.
+     */
+    background-color: var(--hover-clr);
+}
+
+#sidebar svg {
+    /*
+     *  Styling cho icon trong sidebar.
+     */
+    flex-shrink: 0;
+    fill: var(--text-clr);
+}
+
+#sidebar a span,
+#sidebar .dropdown-btn span {
+    /*
+     *  Styling cho span chứa text trong sidebar.
+     */
+    flex-grow: 1;
+}
+
+
+#sidebar .sub-menu {
+    /*
+     *  Styling cho sub menu.
+     */
+    display: grid;
+    grid-template-rows: 0fr; /* ẩn ban đầu */
+    transition: 300ms ease-in-out;
+}
+
+#sidebar .sub-menu > div {
+    /*
+     *  Styling để ẩn/hiện nội dung khi sub menu mở/đóng
+     */
+    overflow: hidden;
+}
+
+
+#sidebar .sub-menu.show {
+    /*
+     *  Styling cho sub menu khi mở.
+     */
+    grid-template-rows: 1fr; /* hiển thị */
+}
+
+.dropdown-btn svg {
+    /*
+     *  Styling cho icon dropdown
+     */
+    transition: 200ms ease;
+}
+
+.rotate svg:last-child {
+    /*
+     *  Styling khi icon dropdown quay 180 độ
+     */
+    rotate: 180deg;
+}
+
+#sidebar .sub-menu a {
+    /*
+     *  Styling cho link trong sub menu.
+     */
+    padding-left: 2em;
+}
+
+#toggle-btn {
+    /*
+     *  Styling cho button toggle sidebar.
+     */
+    margin-left: auto;
+    padding: 1em;
+    border: none;
+    border-radius: .5em;
+    background: none;
+    cursor: pointer;
+}
+
+#toggle-btn svg {
+    /*
+     *  Styling cho icon toggle sidebar.
+     */
+    transition: rotate 150ms ease;
+}
+
+#toggle-btn:hover {
+    /*
+     *  Styling khi hover vào button toggle sidebar.
+     */
+    background-color: var(--hover-clr);
+}
+
+main {
+    /*
+     *  Styling cho phần main content.
+     */
+    padding: min(30px, 7%);
+}
+
+main p {
+    /*
+     *  Styling cho paragraph trong main content.
+     */
+    color: var(--secondary-text-clr);
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+/*.container {*/
+/*    !**/
+/*     *  Styling cho container trong main content.*/
+/*     *!*/
+/*    border: 1px solid var(--line-clr);*/
+/*    border-radius: 1em;*/
+/*    margin-bottom: 20px;*/
+/*    padding: min(3em, 15%);*/
+/*}*/
+
+.container h2,
+.container p {
+    /*
+     *  Styling cho heading và paragraph trong container.
+     */
+    margin-top: 1em;
+}
+
+
+@media (max-width: 800px) {
+    /*
+     *  Responsive styling cho màn hình nhỏ hơn 800px.
+     */
+    body {
+        /*
+         *  Thay đổi layout thành 1 cột.
+         */
+        grid-template-columns: 1fr;
+    }
+
+    main {
+        /*
+         *  Thay đổi padding cho main content.
+         */
+        padding: 2em 1em 60px 1em;
+    }
+
+    .container {
+        /*
+         *  Loại bỏ border và padding cho container.
+         */
+        border: none;
+        padding: 0;
+    }
+
+    #sidebar {
+        /*
+         *  Thay đổi sidebar thành bottom bar cho màn hình nhỏ.
+         */
+        height: 60px;
+        width: 100%;
+        border-right: none;
+        border-top: 1px solid var(--line-clr);
+        padding: 0;
+        position: fixed;
+        top: unset;
+        bottom: 0;
+    }
+    #sidebar > ul {
+        /*
+         *  Thay đổi layout cho các items trong bottom bar.
+         */
+        padding: 0;
+        display: grid;
+        grid-auto-columns: 60px;
+        grid-auto-flow: column;
+        align-items: center;
+        overflow-x: scroll;
+    }
+
+    #sidebar ul li {
+        /*
+         *  Set height cho list item.
+         */
+        height: 100%;
+    }
+
+    #sidebar ul a, #sidebar ul .dropdown-btn {
+        /*
+         *  Styling cho link và button trong bottom bar.
+         */
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        border-radius: 0;
+        justify-content: center;
+    }
+
+    #sidebar ul li span,
+    #sidebar ul li:first-child,
+    #sidebar .dropdown-btn svg:last-child {
+        /*
+         *  Ẩn text và icon cho màn hình nhỏ.
+         */
+        display: none;
+    }
+
+
+    #sidebar ul li .sub-menu.show {
+        /*
+         *  Styling cho sub menu khi mở trên màn hình nhỏ.
+         */
+        position: fixed;
+        bottom: 60px;
+        left: 0;
+        box-sizing: border-box;
+        height: 60px;
+        width: 100%;
+        background-color: var(--hover-clr);
+        border-top: 1px solid var(--line-clr);
+        display: flex;
+        justify-content: center;
+    }
+
+
+    #sidebar ul li .sub-menu.show > div {
+        /*
+         *  Cho phép cuộn sub menu khi có quá nhiều items.
+         */
+        overflow-x: auto;
+    }
+    #sidebar ul li .sub-menu.show li {
+        /*
+         *  Chỉnh lại layout cho sub menu item.
+         */
+        display: inline-flex;
+    }
+    #sidebar ul li .sub-menu.show a {
+        /*
+         *  Styling cho link trong sub menu trên màn hình nhỏ.
+         */
+        box-sizing: border-box;
+        padding: 1em;
+        width: auto;
+        justify-content: center;
+    }
+
+}
+
+#sidebar.close ul li span,
+#sidebar.close ul li .dropdown-btn svg:last-child {
+    /*
+     * Ẩn text và icon khi sidebar đóng.
+     */
+    visibility: hidden;
+}
+#sidebar ul li span,
+#sidebar ul li .dropdown-btn svg:last-child {
+    /*
+     * Hiển thị text và icon khi sidebar mở.
+     */
+    visibility: visible;
+}
+
+
+.active {
+    /*
+     * Styling cho class active.
+     */
+    color: var(--active-color);
+    font-weight: 600;
+}
+.inactive {
+    /*
+    * Styling cho class inactive.
+    */
+    color: var(--inactive-color);
+    font-weight: 600;
+}
+
+

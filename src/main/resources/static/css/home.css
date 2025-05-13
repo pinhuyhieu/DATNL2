@@ -1,0 +1,767 @@
+:root {
+    /* Màu sắc từ snippet 1 */
+    --primary-color: #1e3a8a; /* Blue */
+    --secondary-color: #ff6b00; /* Orange */
+    --light-gray: #f8f9fa;
+    --dark-gray: #343a40;
+
+    /* Màu sắc từ snippet 2 và tinh chỉnh */
+    --accent-color: #303F9F; /* Blue-purple */
+    --light-color: #FFFFFF; /* White */
+    --dark-text-color: #212529; /* Dark gray text */
+    --body-text-color: #4A4A4A; /* Gray text for body */
+    --surface-color: #FAFAFA; /* Light surface color */
+
+    /* Màu hover và biến thể */
+    --primary-color-darker: #172b65; /* Darker shade of primary color */
+    --secondary-color-darker: #d15a00; /* Darker shade of secondary color */
+    --button-hover-primary: var(--primary-color-darker); /* Use darker primary for primary button hover */
+    --button-hover-secondary: var(--secondary-color-darker); /* Use darker secondary for secondary button hover */
+
+    /* Biến mới cho màu nền section nhạt */
+    --section-bg-light: #f5f5f5; /* Hoặc dùng var(--light-gray) */
+}
+
+/* --- General Styles --- */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: var(--body-text-color);
+    background-color: #f5f5f5;
+    line-height: 1.6;
+}
+
+/* Màu nền cho các section mới */
+.bg-light-gray {
+    background-color: var(--section-bg-light);
+}
+
+/* --- Button Styles --- */
+.btn {
+    border: none;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--light-color);
+}
+.btn-primary:hover {
+    background-color: var(--button-hover-primary);
+    border-color: var(--button-hover-primary);
+    transform: translateY(-2px);
+}
+
+.btn-secondary { /* Style cho nút Đăng Ký trong section newsletter */
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--dark-text-color);
+}
+.btn-secondary:hover {
+    background-color: var(--button-hover-secondary);
+    border-color: var(--button-hover-secondary);
+    color: var(--light-color); /* Thay đổi màu text trên hover cho secondary */
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-color: transparent;
+}
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
+/* Nút Login (từ snippet 1) */
+.btn-login {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    height: 50px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+.btn-login:hover {
+    background-color: var(--primary-color-darker);
+    transform: translateY(-2px);
+}
+
+/* --- Header Styles --- */
+.top-bar {
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.9rem;
+}
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+.navbar-brand span {
+    color: var(--secondary-color);
+}
+.main-navbar {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--light-color); /* Đảm bảo navbar có nền trắng */
+}
+.nav-link {
+    font-weight: 500;
+    color: var(--dark-gray);
+    transition: all 0.3s;
+}
+.nav-link:hover {
+    color: var(--secondary-color);
+}
+/* Nút trong navbar (từ snippet 1) */
+.navbar .btn-outline-primary {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.navbar .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* --- Hero Section Styles (Slideshow) --- */
+.hero-section {
+    position: relative;
+    overflow: hidden; /* Che đi phần ảnh tràn ra ngoài */
+    margin-bottom: 2rem; /* Khoảng cách với section tiếp theo */
+}
+
+#heroCarousel .carousel-item {
+    height: 500px; /* Chiều cao cố định cho slide */
+    min-height: 300px; /* Chiều cao tối thiểu trên màn hình nhỏ hơn */
+    background: #777; /* Màu nền dự phòng */
+    position: relative; /* Cần cho định vị ảnh và overlay */
+}
+
+#heroCarousel .hero-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    height: 100%;
+    object-fit: cover; /* Đảm bảo ảnh phủ kín khu vực mà không bị méo */
+    filter: brightness(0.8); /* Làm tối ảnh nhẹ */
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Gradient bán trong suốt sử dụng màu primary và secondary */
+    background: linear-gradient(45deg, rgba(30, 58, 138, 0.6), rgba(255, 107, 0, 0.5));
+    z-index: 1; /* Nằm trên ảnh */
+}
+
+#heroCarousel .hero-content {
+    z-index: 2; /* Nằm trên overlay */
+    bottom: auto; /* Ghi đè mặc định của Bootstrap */
+    top: 50%; /* Căn giữa theo chiều dọc */
+    left: 50%; /* Căn giữa theo chiều ngang */
+    transform: translate(-50%, -50%); /* Điều chỉnh để căn giữa chính xác */
+    padding-bottom: 0; /* Loại bỏ padding mặc định */
+    text-align: center;
+    width: 90%; /* Giới hạn chiều rộng */
+    max-width: 800px;
+    color: var(--light-color); /* Màu chữ trắng */
+}
+
+#heroCarousel .hero-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Thêm bóng text cho dễ đọc */
+}
+#heroCarousel .hero-content p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Thêm bóng text cho dễ đọc */
+}
+
+#heroCarousel .carousel-indicators button {
+    background-color: var(--light-color);
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+#heroCarousel .carousel-indicators button.active {
+    opacity: 1;
+}
+
+#heroCarousel .carousel-control-prev,
+#heroCarousel .carousel-control-next {
+    width: 5%; /* Giảm kích thước nút điều hướng */
+}
+
+/* --- Section Titles --- */
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    padding-bottom: 1rem;
+    color: var(--dark-text-color); /* Màu chữ tối */
+}
+.section-title::after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 3px;
+    background-color: var(--primary-color);
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 3px;
+}
+
+/* --- Login Form Styles (từ snippet 1) --- */
+.login-section {
+    padding: 80px 0;
+    background: url("/images/background_login_section.webp") center/cover no-repeat;
+    position: relative;
+}
+.login-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+.login-container {
+    position: relative;
+    z-index: 1;
+}
+.login-form-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+.login-header {
+    margin-bottom: 30px;
+}
+.login-form input {
+    height: 50px;
+    font-size: 1rem;
+    border-radius: 8px;
+}
+.login-form .form-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+}
+.login-form .form-control {
+    padding-left: 45px;
+}
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 25px 0;
+}
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ced4da;
+}
+.divider span {
+    padding: 0 10px;
+    color: #6c757d;
+}
+.social-login .btn {
+    width: 100%;
+    height: 45px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+.btn-facebook {
+    background-color: #3b5998;
+    color: white;
+}
+.btn-google {
+    background-color: #dd4b39;
+    color: white;
+}
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+}
+.login-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+.login-footer a:hover {
+    color: var(--secondary-color);
+}
+
+/* --- Form Validation (từ snippet 1) --- */
+.was-validated .form-control:valid {
+    border-color: #28a745;
+    background-image: none;
+}
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+    background-image: none;
+}
+
+/* --- Animation (từ snippet 1) --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Áp dụng animation và ẩn ban đầu */
+.animate-fadeInUp {
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+}
+
+/* Delay animation cho nội dung hero trong từng slide */
+#heroCarousel .carousel-item:nth-child(1) .animate-fadeInUp { animation-delay: 0.2s; }
+#heroCarousel .carousel-item:nth-child(2) .animate-fadeInUp { animation-delay: 0.2s; }
+#heroCarousel .carousel-item:nth-child(3) .animate-fadeInUp { animation-delay: 0.2s; }
+#heroCarousel .carousel-item:nth-child(1) .animate-fadeInUp:nth-child(2) { animation-delay: 0.4s; } /* p tag */
+#heroCarousel .carousel-item:nth-child(2) .animate-fadeInUp:nth-child(2) { animation-delay: 0.4s; }
+#heroCarousel .carousel-item:nth-child(3) .animate-fadeInUp:nth-child(2) { animation-delay: 0.4s; }
+#heroCarousel .carousel-item:nth-child(1) .animate-fadeInUp:nth-child(3) { animation-delay: 0.6s; } /* button */
+#heroCarousel .carousel-item:nth-child(2) .animate-fadeInUp:nth-child(3) { animation-delay: 0.6s; }
+#heroCarousel .carousel-item:nth-child(3) .animate-fadeInUp:nth-child(3) { animation-delay: 0.6s; }
+
+
+/* --- Footer Styles (từ snippet 1) --- */
+footer {
+    background-color: var(--dark-gray);
+    color: white;
+    padding: 50px 0 20px;
+}
+.footer-heading {
+    font-weight: 600;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+}
+.footer-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background-color: var(--secondary-color);
+}
+footer ul {
+    padding-left: 0;
+    list-style: none;
+}
+footer ul li {
+    margin-bottom: 10px;
+}
+footer ul li a {
+    color: #adb5bd;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+footer ul li a:hover {
+    color: white;
+    padding-left: 5px; /* Hiệu ứng di chuyển nhẹ */
+}
+.social-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    margin-right: 10px;
+    transition: all 0.3s;
+}
+.social-icons a:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-3px);
+}
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    margin-top: 40px;
+}
+.payment-methods img {
+    height: 30px;
+    margin-right: 10px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* --- Cards & Products (từ snippet 2) --- */
+.product {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    overflow: hidden;
+    background-color: var(--surface-color);
+    position: relative; /* Cho product badge */
+    display: flex;
+    flex-direction: column;
+}
+.product:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+.product img {
+    transition: transform 0.5s;
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.product:hover img {
+    transform: scale(1.05);
+}
+.product-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background-color: var(--accent-color); /* Hoặc màu secondary nếu muốn */
+    color: var(--light-color);
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 20px;
+    z-index: 1;
+}
+.card.product .card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.product-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text-color); /* Màu chữ tối */
+}
+.price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-color); /* Hoặc màu primary */
+}
+.old-price {
+    text-decoration: line-through;
+    color: #9E9E9E;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+.rating {
+    color: #FFC107;
+}
+/* Nút thêm vào giỏ hàng cũ, giữ lại nhưng không dùng trong HTML mới */
+.add-to-cart {
+    background-color: var(--secondary-color);
+    color: var(--dark-text-color);
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+.add-to-cart:hover {
+    background-color: var(--button-hover-secondary);
+    color: var(--light-color);
+}
+.favorite {
+    background: none;
+    border: none;
+    color: #9E9E9E;
+    transition: all 0.2s;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+.favorite:hover {
+    color: #F44336; /* Màu đỏ */
+    transform: scale(1.2);
+}
+
+/* --- Features (từ snippet 2) --- */
+.feature {
+    padding: 1.5rem;
+    border-radius: 12px;
+    background-color: var(--surface-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    transition: all 0.3s;
+}
+.feature:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+.feature i {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+.feature h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-text-color);
+}
+.feature p {
+    color: var(--body-text-color);
+}
+
+/* --- Section: Shop by Category Styles --- */
+.category-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+    overflow: hidden;
+    background-color: var(--light-color); /* Nền trắng cho thẻ */
+    text-decoration: none; /* Bỏ gạch chân link */
+    color: inherit; /* Kế thừa màu chữ */
+    display: block; /* Biến cả thẻ thành link */
+    height: 100%; /* Đảm bảo các thẻ cùng chiều cao */
+    display: flex; /* Dùng flexbox để căn chỉnh nội dung */
+    flex-direction: column;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.category-card img {
+    height: 180px; /* Chiều cao cố định cho ảnh danh mục */
+    object-fit: cover; /* Ảnh phủ kín khu vực */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.category-card .card-body {
+    padding: 1rem;
+    flex-grow: 1; /* Cho phần body chiếm hết không gian còn lại */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Căn giữa nội dung trong body */
+}
+
+.category-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: var(--dark-text-color);
+}
+.category-card .card-text {
+    font-size: 0.9rem;
+    color: var(--body-text-color);
+    margin-bottom: 0; /* Loại bỏ margin dưới cuối cùng */
+}
+
+/* --- Section: Testimonials Styles --- */
+.testimonial {
+    padding: 2rem;
+}
+
+.testimonial p.lead {
+    font-size: 1.1rem;
+    color: var(--dark-text-color);
+    margin-bottom: 1rem;
+    font-style: italic; /* Thêm italic cho quote */
+}
+
+.testimonial p.fw-bold {
+    color: var(--primary-color);
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+#testimonialCarousel .carousel-indicators {
+    bottom: -20px; /* Đặt indicators dưới phần testimonial */
+    position: static; /* Ghi đè position absolute mặc định */
+    margin-top: 1.5rem; /* Khoảng cách với nội dung testimonial */
+}
+#testimonialCarousel .carousel-indicators button {
+    background-color: var(--primary-color); /* Màu indicators */
+}
+
+/* --- Section: Call to Action / Newsletter Styles --- */
+/* Các class bg-primary, text-white, text-center, rounded-3 đã có trong Bootstrap */
+/* Chỉ cần đảm bảo padding cho section này */
+.py-5 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+}
+.newsletter-section .form-control-lg {
+    height: calc(1.5em + 1rem + 2px); /* Chiều cao chuẩn form-control-lg */
+    padding: 0.5rem 1rem;
+    font-size: 1.25rem;
+    border-radius: 0.3rem;
+}
+.newsletter-section .btn-lg {
+    padding: 0.5rem 1.2rem;
+    font-size: 1.25rem;
+    border-radius: 0.3rem;
+    /* Adjust margin if needed, handled by Bootstrap g-2/g-3 */
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 991.98px) { /* Large breakpoint */
+    #heroCarousel .carousel-item {
+        height: 400px;
+    }
+    #heroCarousel .hero-content h1 {
+        font-size: 2rem;
+    }
+    #heroCarousel .hero-content p {
+        font-size: 1rem;
+    }
+    .category-card img {
+        height: 160px;
+    }
+    .section-title {
+        font-size: 1.7rem;
+    }
+    .feature h3 {
+        font-size: 1.1rem;
+    }
+    .feature p {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 767.98px) { /* Medium breakpoint */
+    .login-form-wrapper {
+        padding: 25px;
+    }
+    .login-section {
+        padding: 50px 0;
+    }
+    #heroCarousel .carousel-item {
+        height: 350px;
+    }
+    #heroCarousel .hero-content h1 {
+        font-size: 1.8rem;
+    }
+    #heroCarousel .hero-content p {
+        font-size: 0.9rem;
+    }
+    #heroCarousel .hero-content .btn-lg {
+        padding: 0.4rem 1rem;
+        font-size: 1rem;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .category-card img {
+        height: 140px;
+    }
+    .testimonial {
+        padding: 1rem;
+    }
+    .testimonial p.lead {
+        font-size: 1rem;
+    }
+    .newsletter-section form {
+        flex-direction: column; /* Xếp chồng input và button */
+    }
+    .newsletter-section input {
+        margin-bottom: 1rem;
+        margin-right: 0 !important; /* Loại bỏ margin-right của Bootstrap flex utilities */
+    }
+    .newsletter-section .btn-lg {
+        width: 100%; /* Nút chiếm toàn bộ chiều rộng */
+    }
+}
+
+@media (max-width: 575.98px) { /* Small breakpoint (Extra small in Bootstrap 4) */
+    #heroCarousel .carousel-item {
+        height: 300px;
+    }
+    #heroCarousel .hero-content {
+        width: 95%;
+    }
+    #heroCarousel .hero-content h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.8rem;
+    }
+    #heroCarousel .hero-content p {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+    #heroCarousel .carousel-control-prev,
+    #heroCarousel .carousel-control-next {
+        width: 8%;
+    }
+    .category-card img {
+        height: 120px;
+    }
+    .product .card-body {
+        padding: 0.8rem;
+    }
+    .product-title {
+        font-size: 1rem;
+    }
+    .price {
+        font-size: 1.1rem;
+    }
+    .old-price {
+        font-size: 0.8rem;
+    }
+    .feature {
+        padding: 1rem; /* Giảm padding feature */
+    }
+    .feature h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.3rem;
+    }
+    .feature p {
+        font-size: 0.9rem;
+    }
+    .testimonial p.lead {
+        font-size: 0.95rem;
+    }
+    .testimonial p.fw-bold {
+        font-size: 0.9rem;
+    }
+    .footer ul li {
+        margin-bottom: 8px; /* Giảm khoảng cách giữa các item footer */
+    }
+    .footer-bottom {
+        margin-top: 20px; /* Giảm khoảng cách chân trang */
+    }
+}

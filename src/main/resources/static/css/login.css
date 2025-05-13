@@ -1,0 +1,129 @@
+/* Login Section Styles */
+.login-section {
+    padding: 80px 0;
+    background: url("/static/images/background_login_section.webp") center/cover no-repeat; /* Updated to local path */
+    position: relative;
+}
+
+.login-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.login-container {
+    position: relative;
+    z-index: 1;
+}
+
+.login-form-wrapper {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.login-header {
+    margin-bottom: 30px;
+}
+
+.login-form input {
+    height: 50px;
+    font-size: 1rem;
+    border-radius: 8px;
+}
+
+.login-form .form-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+}
+
+.login-form .form-control {
+    padding-left: 45px;
+}
+
+.btn-login {
+    background-color: var(--primary-color); /* From snippet 1 */
+    color: var(--light-color); /* Assuming white text for login button */
+    height: 50px; /* From snippet 1 */
+    font-weight: 500; /* From snippet 1 */
+    transition: all 0.3s; /* From snippet 1 */
+}
+
+.btn-login:hover {
+    background-color: var(--primary-color-darker); /* Darker primary color hover from snippet 1 */
+    transform: translateY(-2px); /* Hover effect from snippet 1 */
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 25px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ced4da;
+}
+
+.divider span {
+    padding: 0 10px;
+    color: #6c757d;
+}
+
+.social-login .btn {
+    width: 100%;
+    height: 45px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.btn-facebook {
+    background-color: #3b5998;
+    color: white;
+}
+
+.btn-google {
+    background-color: #dd4b39;
+    color: white;
+}
+
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.login-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-footer a:hover {
+    color: var(--secondary-color);
+}
+
+@media (max-width: 767.98px) { /* Snippet 1 breakpoint */
+    .login-form-wrapper {
+        padding: 25px;
+    }
+
+    .login-section {
+        padding: 50px 0;
+    }
+}

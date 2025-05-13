@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Kết quả thanh toán - Sunday Shoes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .payment-result {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            color: #28a745;
+        }
+        .error-icon {
+            color: #dc3545;
+        }
+        .result-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .result-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .back-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<div class="container">
+    <div class="payment-result text-center">
+        <div th:if="${isSuccess}">
+            <div class="result-icon success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="result-title text-success">Thanh toán thành công!</h2>
+        </div>
+        <div th:unless="${isSuccess}">
+            <div class="result-icon error-icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h2 class="result-title text-danger">Thanh toán thất bại!</h2>
+        </div>
+
+        <div class="result-details">
+            <div class="detail-row">
+                <span class="detail-label">Mã đơn hàng:</span>
+                <span th:text="${orderId}"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Số tiền:</span>
+                <span th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT') + ' đ'}"></span>
+            </div>
+            <div class="detail-row" th:if="${payDate}">
+                <span class="detail-label">Thời gian thanh toán:</span>
+                <span th:text="${payDate}"></span>
+            </div>
+            <div class="detail-row" th:if="${bankCode}">
+                <span class="detail-label">Ngân hàng:</span>
+                <span th:text="${bankCode}"></span>
+            </div>
+        </div>
+
+        <div th:if="${isSuccess}" class="alert alert-success">
+            Cảm ơn bạn đã mua hàng tại Sunday Shoes! Đơn hàng của bạn đang được xử lý.
+        </div>
+        <div th:unless="${isSuccess}" class="alert alert-warning">
+            Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.
+        </div>
+
+        <a href="/" class="btn btn-primary back-button">
+            <i class="fas fa-home"></i> Quay về trang chủ
+        </a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

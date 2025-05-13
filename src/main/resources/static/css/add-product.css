@@ -1,0 +1,186 @@
+/* add-product.css */
+
+/* ======================================== */
+/*  1. GLOBAL STYLES (Kiểu dáng chung)      */
+/* ======================================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font chữ hiện đại, dễ đọc */
+    background-color: #f4f7f9; /* Màu nền trang nhạt, tạo cảm giác sạch sẽ */
+    margin: 0; /* Loại bỏ margin mặc định của body */
+    padding: 0; /* Loại bỏ padding mặc định của body */
+    display: flex; /* Sử dụng Flexbox để tạo layout tổng thể, giúp dễ dàng căn chỉnh sidebar và main */
+}
+
+/* ======================================== */
+/*  2. SIDEBAR (Thanh bên)                 */
+/* ======================================== */
+aside {
+    width: 250px; /* Độ rộng cố định cho sidebar */
+    background-color: #2c3e50; /* Màu nền sidebar đậm, tạo sự tương phản */
+    color: white; /* Màu chữ trên sidebar là màu trắng */
+    padding-top: 20px; /* Padding phía trên sidebar để tạo khoảng cách với đỉnh trang */
+    height: 100vh; /* Chiều cao sidebar bằng 100% chiều cao viewport, luôn hiển thị full chiều cao màn hình */
+    position: fixed; /* Cố định sidebar ở vị trí, không bị cuộn khi nội dung chính dài */
+    left: 0; /* Đặt sidebar ở lề trái */
+    top: 0; /* Đặt sidebar ở đỉnh trang */
+    overflow-x: hidden; /* Ẩn thanh cuộn ngang nếu nội dung sidebar vượt quá chiều rộng (thường không cần thiết) */
+    transition: 0.5s; /* Thêm hiệu ứng transition cho sidebar (ví dụ khi ẩn/hiện sidebar), tốc độ 0.5 giây */
+    /* LƯU Ý: Nếu bạn có chức năng ẩn/hiện sidebar, transition này sẽ làm hiệu ứng mượt mà hơn */
+}
+/* GHI CHÚ: Bạn có thể tùy chỉnh màu nền, màu chữ, độ rộng sidebar và các thuộc tính khác để phù hợp với thiết kế tổng thể */
+
+/* ======================================== */
+/*  3. MAIN CONTENT (Nội dung chính)        */
+/* ======================================== */
+main {
+    flex: 1; /* Cho phép main content chiếm toàn bộ không gian còn lại sau sidebar */
+    padding: 20px; /* Padding xung quanh nội dung chính */
+    /* margin-left: 250px; !* Đẩy nội dung chính sang phải để không bị che bởi sidebar *! */
+    /*  LƯU Ý: Nếu sidebar luôn hiển thị cố định, bạn cần bỏ comment dòng 'margin-left' này để nội dung chính không bị sidebar che khuất.
+        Trong trường hợp sidebar có thể ẩn/hiện, bạn có thể quản lý 'margin-left' này bằng JavaScript hoặc CSS media queries */
+    transition: margin-left 0.5s; /* Đồng bộ hiệu ứng transition margin-left với sidebar (nếu có ẩn/hiện sidebar) */
+}
+
+/* ======================================== */
+/*  4. PAGE TITLE (Tiêu đề trang)          */
+/* ======================================== */
+h2 {
+    color: #3498db; /* Màu tiêu đề nổi bật, xanh dương */
+    margin-top: 0; /* Loại bỏ margin phía trên tiêu đề */
+    margin-bottom: 20px; /* Margin phía dưới tiêu đề để tạo khoảng cách với form */
+    text-align: center; /* Căn giữa tiêu đề */
+}
+/* GHI CHÚ: Bạn có thể thay đổi màu sắc, font-size và các thuộc tính khác của tiêu đề */
+
+/* ======================================== */
+/*  5. ALERTS (Thông báo)                  */
+/* ======================================== */
+.alert {
+    padding: 15px; /* Padding bên trong alert box */
+    margin-bottom: 20px; /* Margin phía dưới alert box để tách biệt các alert hoặc form */
+    border-radius: 5px; /* Bo góc alert box */
+}
+
+.alert-success {
+    background-color: #d4edda; /* Màu nền xanh nhạt cho thông báo thành công */
+    border-color: #c3e6cb; /* Màu viền xanh nhạt hơn cho thông báo thành công */
+    color: #155724; /* Màu chữ xanh đậm cho thông báo thành công */
+}
+
+.alert-danger {
+    background-color: #f8d7da; /* Màu nền đỏ nhạt cho thông báo lỗi */
+    border-color: #f5c6cb; /* Màu viền đỏ nhạt hơn cho thông báo lỗi */
+    color: #721c24; /* Màu chữ đỏ đậm cho thông báo lỗi */
+}
+/* GHI CHÚ: Bạn có thể tùy chỉnh màu sắc của alert để phù hợp với theme chung */
+
+/* ======================================== */
+/*  6. FORM GROUPS (Nhóm các trường form)  */
+/* ======================================== */
+.form-group {
+    margin-bottom: 20px; /* Margin phía dưới mỗi form group, tạo khoảng cách giữa các trường */
+}
+
+.form-group label {
+    display: block; /* Hiển thị label trên một dòng riêng biệt */
+    margin-bottom: 8px; /* Margin phía dưới label, tạo khoảng cách với input field */
+    color: #555; /* Màu chữ label, xám đậm */
+    font-weight: bold; /* In đậm label */
+}
+
+/* Style chung cho các input elements: text, textarea, select, file */
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select,
+.form-group input[type="file"] {
+    width: 100%; /* Chiều rộng input field là 100% chiều rộng container cha */
+    padding: 12px; /* Padding bên trong input field */
+    border: 1px solid #ddd; /* Viền input field, màu xám nhạt */
+    border-radius: 4px; /* Bo góc input field */
+    font-size: 16px; /* Font size cho chữ trong input field */
+    box-sizing: border-box; /* Đảm bảo padding và border không làm tăng kích thước tổng của phần tử */
+    transition: border-color 0.3s ease; /* Hiệu ứng transition cho màu viền khi focus */
+}
+
+/* Style khi input elements được focus (click vào hoặc tab đến) */
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.form-group input[type="file"]:focus {
+    border-color: #3498db; /* Màu viền đậm hơn khi focus, xanh dương */
+    outline: none; /* Loại bỏ outline mặc định của trình duyệt khi focus, để sử dụng box-shadow tùy chỉnh */
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.2); /* Đổ bóng nhẹ khi focus, tạo hiệu ứng nổi bật */
+}
+
+.form-group textarea {
+    height: 150px; /* Chiều cao mặc định cho textarea */
+}
+
+/* Tùy chỉnh style cho select dropdown */
+.form-group select {
+    appearance: none; /* Loại bỏ style mặc định của trình duyệt cho select */
+    -webkit-appearance: none; /* Cần thiết cho Safari */
+    -moz-appearance: none; /* Cần thiết cho Firefox */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>'); /* Thêm icon mũi tên dropdown bằng SVG */
+    background-repeat: no-repeat; /* Không lặp lại background image */
+    background-position-x: calc(100% - 10px); /* Đặt icon mũi tên ở góc phải, cách 10px */
+    background-position-y: 50%; /* Căn giữa icon mũi tên theo chiều dọc */
+    padding-right: 30px; /* Tạo padding bên phải để có đủ không gian cho icon mũi tên */
+}
+/* LƯU Ý: Style tùy chỉnh select có thể khác nhau giữa các trình duyệt, cần kiểm tra kỹ */
+
+/* Style đặc biệt cho input type="file" */
+.form-group input[type="file"] {
+    padding: 0; /* Loại bỏ padding mặc định của input file để style đồng nhất */
+    border: none; /* Loại bỏ border mặc định của input file để style đồng nhất */
+}
+
+/* Text nhỏ dưới input field (ví dụ: hướng dẫn, gợi ý) */
+.form-text {
+    font-size: 14px; /* Font size nhỏ hơn cho form text */
+    color: #777; /* Màu chữ xám nhạt hơn cho form text */
+    display: block; /* Hiển thị form text trên dòng mới */
+    margin-top: 5px; /* Margin phía trên form text, tạo khoảng cách với input field */
+}
+
+/* Text thông báo lỗi */
+.text-danger {
+    color: #e74c3c; /* Màu đỏ cho thông báo lỗi, dễ nhận biết */
+    font-size: 14px; /* Font size nhỏ hơn cho thông báo lỗi */
+    margin-top: 5px; /* Margin phía trên thông báo lỗi, tạo khoảng cách với input field */
+}
+
+/* ======================================== */
+/*  7. BUTTON (Nút submit)                */
+/* ======================================== */
+button[type="submit"] {
+    background-color: #3498db; /* Màu nền button, xanh dương */
+    color: white; /* Màu chữ button, trắng */
+    padding: 12px 25px; /* Padding bên trong button, chiều dọc và chiều ngang */
+    border: none; /* Loại bỏ border mặc định của button */
+    border-radius: 5px; /* Bo góc button */
+    font-size: 16px; /* Font size cho chữ trên button */
+    cursor: pointer; /* Đổi cursor thành pointer khi hover vào button, thể hiện là element có thể click */
+    transition: background-color 0.3s ease; /* Hiệu ứng transition cho màu nền khi hover */
+}
+
+button[type="submit"]:hover {
+    background-color: #2980b9; /* Màu nền button đậm hơn khi hover, xanh dương đậm hơn */
+}
+/* GHI CHÚ: Bạn có thể tùy chỉnh màu sắc, padding, font-size và các thuộc tính khác của button */
+
+
+/* ======================================== */
+/*  8. FORM ROW (Hàng form - Flexbox Layout)*/
+/* ======================================== */
+.form-row {
+    display: flex; /* Kích hoạt Flexbox layout cho form row */
+    gap: 20px; /* Khoảng cách giữa các form-group trong cùng một hàng */
+    margin-bottom: 20px; /* Margin phía dưới form row, tạo khoảng cách với dòng form tiếp theo */
+}
+
+.form-row .form-group {
+    flex: 1; /* Mỗi form-group trong form-row sẽ chiếm không gian bằng nhau */
+    margin-bottom: 0; /* Loại bỏ margin-bottom mặc định của form-group bên trong form-row, vì đã có margin-bottom cho form-row */
+}
+/* LƯU Ý: Sử dụng .form-row để nhóm các form-group muốn hiển thị trên cùng một hàng, giúp tối ưu không gian theo chiều ngang */

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Danh Mục</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/menu.css">
+    <link rel="stylesheet" href="/css/custom-sweetalert.css">
+    <link rel="stylesheet" href="/css/admin-crud.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link th:href="@{/icons/straighten.png}" rel="icon" type="image/png">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<!-- Nội dung chính -->
+<main>
+    <div class="crud-container">
+        <!-- Tiêu đề trang -->
+        <div class="section-title">
+            <i class="fas fa-list"></i>
+            <h1>Quản lý Danh Mục</h1>
+        </div>
+
+        <!-- Form Thêm/Sửa -->
+        <form th:action="@{${isEdit} ? '/admin/danh-muc/update' : '/admin/danh-muc/add'}"
+              th:object="${danhMuc}" method="post" class="crud-form" id="danhMucForm">
+            <h2>
+                <i class="fas" th:classappend="${isEdit} ? 'fa-edit' : 'fa-plus-circle'"></i>
+                <span th:text="${isEdit} ? 'Cập nhật Danh Mục' : 'Thêm Danh Mục Mới'"></span>
+            </h2>
+            
+            <input type="hidden" th:field="*{danhMucId}"/>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="tenDanhMuc">Tên Danh Mục <span class="required">*</span></label>
+                    <input type="text" id="tenDanhMuc" th:field="*{tenDanhMuc}"
+                           th:classappend="${#fields.hasErrors('tenDanhMuc')} ? 'is-invalid' : ''"
+                           placeholder="Nhập tên danh mục"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('tenDanhMuc')}" th:errors="*{tenDanhMuc}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="trangThai">Trạng Thái</label>
+                    <select id="trangThai" th:field="*{trangThai}">
+                        <option value="Hoạt động" th:selected="${danhMuc.trangThai == 'Hoạt động'}">Hoạt động</option>
+                        <option value="Không hoạt động" th:selected="${danhMuc.trangThai == 'Không hoạt động'}">Không hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="submit-button" onclick="validateAndConfirmSubmit()">
+                    <i class="fas" th:classappend="${isEdit} ? 'fa-save' : 'fa-plus'"></i>
+                    <span th:text="${isEdit} ? 'Cập nhật' : 'Thêm mới'"></span>
+                </button>
+                <a th:href="@{/admin/danh-muc}" th:if="${isEdit}" class="cancel-button">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+
+        <!-- Bộ lọc và Tìm kiếm -->
+        <div class="search-filter-panel">
+            <div class="search-group">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm danh mục..." 
+                           onkeyup="handleSearch(event)">
+                </div>
+                <select id="trangThaiFilter" onchange="fetchFilteredData()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Hoạt động">Hoạt động</option>
+                    <option value="Không hoạt động">Không hoạt động</option>
+                </select>
+                <button type="button" class="reset-button" onclick="resetFilter()" title="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bảng hiển thị -->
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Danh Mục</th>
+                    <th>Trạng Thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody id="danhMucTableBody" th:fragment="danhMucTable">
+                    <tr th:if="${danhMucList.empty}">
+                        <td colspan="4" class="text-center">Không tìm thấy danh mục nào</td>
+                    </tr>
+                    <tr th:each="danhMuc : ${danhMucList}" th:if="${!danhMucList.empty}">
+                        <td th:text="${danhMuc.danhMucId}"></td>
+                        <td th:text="${danhMuc.tenDanhMuc}"></td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${danhMuc.trangThai == 'Hoạt động'} ? 'status-active' : 'status-inactive'"
+                                  th:text="${danhMuc.trangThai}"></span>
+                        </td>
+                        <td class="action-buttons">
+                            <a th:href="@{/admin/danh-muc/edit/{id}(id=${danhMuc.danhMucId})}" 
+                               class="action-button edit-button" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" 
+                                    class="action-button" 
+                                    th:classappend="${danhMuc.trangThai == 'Hoạt động'} ? 'status-active-button' : 'status-inactive-button'"
+                                    th:onclick="'toggleStatus(' + ${danhMuc.danhMucId} + ')'"
+                                    th:title="${danhMuc.trangThai == 'Hoạt động'} ? 'Ngừng hoạt động' : 'Kích hoạt'">
+                                <i class="fas" th:classappend="${danhMuc.trangThai == 'Hoạt động'} ? 'fa-lock' : 'fa-lock-open'"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script src="/js/menu.js"></script>
+<script src="/js/sweetalert.js"></script>
+<script th:inline="javascript">
+    const successMessage = /*[[${successMessage}]]*/ '';
+    const errorMessage = /*[[${errorMessage}]]*/ '';
+    const isEdit = /*[[${isEdit}]]*/ false;
+
+    if (successMessage) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: successMessage,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    if (errorMessage) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Lỗi!',
+            text: errorMessage
+        });
+    }
+
+    function validateAndConfirmSubmit() {
+        const tenDanhMuc = document.getElementById('tenDanhMuc').value.trim();
+        if (tenDanhMuc === '') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Tên danh mục không được để trống.'
+            });
+            return false;
+        }
+
+        let actionText = isEdit ? 'cập nhật' : 'thêm';
+        Swal.fire({
+            title: 'Xác nhận?',
+            text: `Bạn có chắc chắn muốn ${actionText} danh mục này?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('danhMucForm').submit();
+            }
+        });
+    }
+
+    let searchTimeout;
+    
+    function handleSearch(event) {
+        // Clear the previous timeout
+        clearTimeout(searchTimeout);
+        
+        // Set a new timeout to search after 300ms of user inactivity
+        searchTimeout = setTimeout(() => {
+            fetchFilteredData();
+        }, 300);
+        
+        // If Enter key is pressed, search immediately
+        if (event.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            fetchFilteredData();
+        }
+    }
+
+    function fetchFilteredData() {
+        const trangThai = document.getElementById("trangThaiFilter").value;
+        const searchTerm = document.getElementById("searchInput").value.trim();
+        
+        // Show loading state
+        const tableBody = document.getElementById("danhMucTableBody");
+        tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Đang tải...</td></tr>';
+        
+        // Build URL with proper encoding
+        const url = new URL('/admin/danh-muc/filter', window.location.origin);
+        url.searchParams.append('trangThai', trangThai);
+        url.searchParams.append('search', searchTerm);
+        
+        fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            if (!html || html.trim() === '') {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Không tìm thấy danh mục nào</td></tr>';
+                return;
+            }
+
+            try {
+                // Create a temporary container to parse the HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Get the table body content
+                const newTableBody = doc.querySelector('tbody');
+                
+                if (newTableBody) {
+                    // Update the table body with the new content
+                    tableBody.innerHTML = newTableBody.innerHTML;
+                } else {
+                    // If no tbody found, try to use the entire response
+                    if (html.includes('<tr')) {
+                        tableBody.innerHTML = html;
+                    } else {
+                        throw new Error('No valid table content found in response');
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing response:', error);
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Lỗi xử lý dữ liệu</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Lỗi khi tải dữ liệu</td></tr>';
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Không thể tải dữ liệu. Vui lòng thử lại.'
+            });
+        });
+    }
+
+    // Add event listener for search input
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(event) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    console.log('Searching for:', this.value);
+                    fetchFilteredData();
+                }, 300);
+            });
+        }
+    });
+
+    function resetFilter() {
+        document.getElementById("trangThaiFilter").value = "";
+        document.getElementById("searchInput").value = "";
+        fetchFilteredData();
+    }
+
+    function toggleStatus(id) {
+        Swal.fire({
+            title: 'Xác nhận thay đổi trạng thái?',
+            text: 'Bạn có chắc chắn muốn thay đổi trạng thái của danh mục này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/danh-muc/toggle-status/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            fetchFilteredData();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: data.message
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Không thể cập nhật trạng thái.'
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+<style>
+    .search-filter-panel {
+        margin: 1rem 0;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .search-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 0.9em;
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 6px 12px 6px 30px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.9em;
+        height: 32px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input-wrapper input:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+    }
+
+    .search-input-wrapper input::placeholder {
+        color: #adb5bd;
+    }
+
+    #trangThaiFilter {
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.9em;
+        height: 32px;
+        min-width: 140px;
+        background-color: white;
+    }
+
+    .reset-button {
+        padding: 6px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background: white;
+        color: #6c757d;
+        cursor: pointer;
+        height: 32px;
+        width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .reset-button:hover {
+        background: #f8f9fa;
+        border-color: #6c757d;
+        color: #343a40;
+    }
+
+    @media (max-width: 576px) {
+        .search-group {
+            flex-wrap: wrap;
+        }
+        .search-input-wrapper {
+            max-width: 100%;
+        }
+        #trangThaiFilter {
+            min-width: 120px;
+        }
+    }
+
+    .text-center {
+        text-align: center;
+        padding: 1rem !important;
+    }
+    
+    .text-danger {
+        color: #dc3545;
+    }
+    
+    #danhMucTableBody tr td {
+        vertical-align: middle;
+    }
+</style>
+</body>
+</html>

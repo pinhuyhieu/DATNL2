@@ -1,0 +1,82 @@
+<nav id="sidebar" th:fragment="sidebar">
+    <ul>
+        <li>
+            <button onclick="toggleSidebar()" id="toggle-btn">
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+        </li>
+        <li th:class="${activePage == 'thong-ke' ? 'active' : ''}">
+            <a href="/admin/thong-ke">
+                <i class="fas fa-chart-line"></i>
+                <span>Thống kê</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'dashboard' ? 'active' : ''}">
+            <a href="/admin/pos">
+                <i class="fas fa-cash-register"></i>
+                <span>POD Bán Hàng Tại Quầy</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'sanPhams' ? 'active' : ''}">
+            <a href="/admin/san-pham">
+                <i class="fas fa-tags"></i>
+                <span>Quản lý sản phẩm</span>
+            </a>
+        </li>
+        <li>
+            <button onclick="toggleSubMenu(this)" class="dropdown-btn">
+                <i class="fas fa-list"></i>
+                <span>Quản lý thuộc tính</span>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </button>
+            <ul class="sub-menu">
+                <div>
+                    <li th:class="${activePage == 'danhMuc' ? 'active' : ''}">
+                        <a href="/admin/danh-muc"><i class="fas fa-folder-tree"></i> Danh mục</a>
+                    </li>
+                    <li th:class="${activePage == 'kichCo' ? 'active' : ''}">
+                        <a href="/admin/kich-co"><i class="fas fa-ruler-combined"></i> Kích cỡ</a>
+                    </li>
+                    <li th:class="${activePage == 'thuongHieu' ? 'active' : ''}">
+                        <a href="/admin/thuong-hieu"><i class="fas fa-industry"></i> Thương hiệu</a>
+                    </li>
+                    <li th:class="${activePage == 'mauSac' ? 'active' : ''}">
+                        <a href="/admin/mau-sac"><i class="fas fa-swatchbook"></i> Màu sắc</a>
+                    </li>
+                    <li th:class="${activePage == 'chatLieu' ? 'active' : ''}">
+                        <a href="/admin/chat-lieu"><i class="fas fa-cube"></i> Chất liệu</a>
+                    </li>
+                    <li th:class="${activePage == 'kieuDang' ? 'active' : ''}">
+                        <a href="/admin/kieu-dang"><i class="fas fa-shoe-prints"></i> Kiểu dáng</a>
+                    </li>
+                </div>
+            </ul>
+        </li>
+        <li th:class="${activePage == 'profile' ? 'active' : ''}">
+            <a href="/admin/ma-giam-gia">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Quản lý mã giảm giá</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'hoaDon' ? 'active' : ''}">
+            <a href="/admin/hoa-don">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Quản lý hoá đơn</span>
+            </a>
+        </li>
+        <li th:class="${activePage == 'khachHang' ? 'active' : ''}"> <!-- New menu item for Khách Hàng -->
+            <a href="/admin/khach-hang/hien-thi">
+                <i class="fas fa-users"></i>
+                <span>Quản lý khách hàng</span>
+            </a>
+        </li>
+        <li>
+            <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+            <button type="button" class="logout-btn" onclick="confirmLogout()">
+                <i class="fas fa-door-open"></i>
+                <span>Đăng xuất</span>
+            </button>
+        </li>
+    </ul>
+
+</nav>

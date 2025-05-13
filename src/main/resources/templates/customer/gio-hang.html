@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng của bạn - Sunday Shoes</title>
+    <!-- CSS Links (Keep as they are) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="/css/home.css"> <!-- Adjust path if needed -->
+    <style>
+        /* CSS Styles (Keep as they are, they seem good) */
+        /* Base styles */
+        body {
+            font-family: 'Arial', sans-serif; /* Consider a more modern font like Roboto or Inter */
+            background-color: #f8f9fa; /* Light grey background */
+            color: #343a40; /* Default text color */
+        }
+
+        .cart-container {
+            background-color: #fff;
+            padding: 25px 30px; /* Adjusted padding */
+            border-radius: 12px; /* Slightly larger radius */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07); /* Softer shadow */
+            margin-top: 30px;
+            margin-bottom: 50px; /* More space at bottom */
+        }
+
+        /* Cart Item Styling */
+        .cart-item {
+            display: flex;
+            align-items: center; /* Vertically align items */
+            padding: 20px 0;
+            border-bottom: 1px solid #e9ecef; /* Lighter border */
+            position: relative;
+            transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out; /* Smooth transitions */
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Unavailable Item Styling */
+        .cart-item.unavailable {
+            background-color: rgba(255, 243, 205, 0.3); /* Very light warning yellow */
+            border-left: 4px solid #ffc107; /* Warning color border */
+            padding-left: 15px; /* Indent slightly */
+            opacity: 0.9; /* Slightly less opacity */
+        }
+        /* Keep remove clickable, slightly dim others */
+        .cart-item.unavailable .remove-item-btn {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .cart-item.unavailable .product-title,
+        .cart-item.unavailable .product-info {
+            color: #6c757d; /* Dim text */
+        }
+        .cart-item.unavailable .price {
+            opacity: 0.8;
+        }
+        /* Make CONTROLS semi-transparent when generally unavailable, JS will handle specific button disables */
+        .cart-item.unavailable .quantity-controls {
+            opacity: 0.8;
+        }
+        .cart-item.unavailable .quantity-controls .quantity-input:disabled,
+        .cart-item.unavailable .quantity-controls .quantity-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.4; /* More pronounced disabled opacity */
+        }
+
+
+        /* Image Styling */
+        .cart-item-image {
+            width: 100px; /* Fixed width */
+            height: 100px; /* Fixed height */
+            margin-right: 20px;
+            flex-shrink: 0; /* Prevent image from shrinking */
+            overflow: hidden; /* Hide overflow */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure image covers the area nicely */
+        }
+
+        /* Details Styling */
+        .cart-item-details {
+            flex-grow: 1; /* Allow details to take remaining space */
+            min-width: 0; /* Prevent text overflow issues */
+        }
+        .product-title {
+            font-size: 1.05rem; /* Slightly adjusted */
+            font-weight: 600; /* Semibold */
+            margin-bottom: 6px;
+            color: #212529; /* Darker color */
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Add ellipsis if too long */
+            max-width: 95%; /* Prevent pushing other elements */
+        }
+        .product-info {
+            font-size: 0.85rem; /* Smaller info text */
+            color: #6c757d;
+            margin-bottom: 4px; /* Less space */
+        }
+        .product-info i {
+            width: 15px; /* Align icons */
+            text-align: center;
+            margin-right: 5px;
+            color: var(--primary-color, #0d6efd); /* Use theme color if available */
+        }
+
+        /* Availability Message */
+        .availability-message {
+            font-size: 0.8rem; /* Even smaller */
+            color: #856404; /* Darker yellow for text */
+            font-weight: 500;
+            margin-top: 5px;
+            padding: 3px 8px;
+            background-color: rgba(255, 243, 205, 0.6); /* Warning yellow background */
+            border: 1px solid rgba(255, 193, 7, 0.5); /* Faint warning border */
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .availability-message .fst-italic { /* Style suggestion text */
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+
+        /* Quantity Controls */
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px; /* Ensure enough space */
+            margin-left: auto; /* Push to the right */
+            margin-right: 15px; /* Space before price */
+        }
+        .quantity-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6; /* Slightly darker border */
+            color: #495057;
+            border-radius: 4px;
+            padding: 4px 8px; /* Smaller padding */
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+        }
+        .quantity-btn:hover:not(:disabled) {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+        .quantity-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            background-color: #e9ecef; /* Indicate disabled state */
+        }
+        .quantity-input {
+            width: 45px; /* Smaller input */
+            height: 30px; /* Match button height */
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 0 5px;
+            padding: 4px; /* Adjust padding */
+            -moz-appearance: textfield;
+            appearance: textfield;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .quantity-input:disabled {
+            cursor: not-allowed;
+            background-color: #e9ecef;
+            opacity: 0.6;
+        }
+        .quantity-input.is-invalid { /* Validation feedback */
+            border-color: #dc3545 !important; /* Ensure error border shows */
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.2);
+        }
+
+
+        /* Price Styling */
+        .price-col {
+            min-width: 110px; /* Ensure space for price */
+            text-align: end; /* Align right */
+            margin-right: 15px; /* Space before remove */
+        }
+        .price {
+            font-weight: 600; /* Semibold */
+            color: #dc3545; /* Red price */
+            font-size: 1.05rem;
+        }
+
+        /* Remove Button */
+        .remove-col {
+            text-align: end;
+        }
+        .remove-item-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 1.1rem; /* Slightly larger icon */
+            opacity: 0.7;
+            transition: opacity 0.2s ease, color 0.2s ease, transform 0.1s ease;
+            padding: 5px; /* Click area */
+        }
+        .remove-item-btn:hover {
+            opacity: 1;
+            color: #dc3545;
+            transform: scale(1.1);
+        }
+
+        /* Cart Summary */
+        .cart-summary {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align items top */
+            flex-wrap: wrap;
+            gap: 15px; /* Space between items when wrapped */
+        }
+        .cart-total {
+            font-size: 1.25rem; /* Larger total */
+            font-weight: 600; /* Semibold */
+            color: #198754; /* Success color */
+            margin-bottom: 10px;
+        }
+        .checkout-btn, .continue-shopping-btn {
+            padding: 10px 20px; /* Adjusted padding */
+            font-size: 1rem;
+            font-weight: 500; /* Medium weight */
+            border-radius: 6px;
+            transition: background-color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+        }
+        .checkout-btn:hover:not(:disabled), .continue-shopping-btn:hover {
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+
+        /* Disabled Checkout Button */
+        .checkout-btn:disabled, .checkout-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            background-color: #6c757d;
+            border-color: #6c757d;
+            pointer-events: none;
+        }
+        .checkout-btn:disabled:hover {
+            transform: none; /* No lift effect when disabled */
+        }
+        /* Warning message below disabled checkout */
+        .checkout-warning {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .checkout-warning i {
+            margin-right: 3px;
+        }
+
+
+        /* Empty Cart Styling */
+        .empty-cart-image {
+            max-width: 350px; /* Adjusted size */
+            margin-bottom: 25px;
+        }
+        .empty-cart-message {
+            font-size: 1.05rem; /* Slightly smaller */
+            color: #495057; /* Darker grey */
+        }
+
+        /* SweetAlert Container (fixed position) */
+        /* Note: SweetAlert usually positions itself, this is a fallback or override */
+        .alert-container {
+            position: fixed;
+            top: 70px; /* Below header */
+            right: 20px;
+            z-index: 1060; /* High z-index */
+            width: auto; /* Adjust width based on content */
+            max-width: 400px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            .cart-item {
+                flex-direction: column; /* Stack items vertically */
+                align-items: flex-start; /* Align left */
+                padding: 15px;
+                border-left: none; /* Remove left border on mobile */
+                padding-left: 0;
+            }
+            .cart-item.unavailable {
+                border-top: 3px solid #ffc107; /* Use top border instead */
+                border-left: none;
+                padding-left: 15px; /* Add back padding */
+            }
+            .cart-item-image {
+                align-self: center; /* Center image */
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 120px; /* Slightly larger on mobile */
+                height: 120px;
+            }
+            .cart-item-details {
+                width: 100%; /* Take full width */
+                margin-bottom: 10px;
+            }
+            .product-title {
+                white-space: normal; /* Allow wrapping */
+                max-width: 100%;
+            }
+            .quantity-controls, .price-col, .remove-col {
+                width: 100%; /* Take full width */
+                display: flex;
+                justify-content: space-between; /* Space out controls/price/remove */
+                align-items: center;
+                margin: 5px 0; /* Add vertical space */
+                min-width: unset; /* Reset min-width */
+                padding: 5px 0; /* Add padding */
+            }
+            .quantity-controls {
+                justify-content: center; /* Center quantity itself */
+                margin-left: 0;
+                margin-right: 0;
+            }
+            .price-col {
+                justify-content: flex-end; /* Keep price right */
+                margin-right: 0;
+                font-size: 1.1rem; /* Make price slightly larger */
+            }
+            .remove-col {
+                justify-content: flex-end; /* Keep remove right */
+            }
+            .cart-summary {
+                flex-direction: column;
+                align-items: stretch; /* Stretch items */
+            }
+            .cart-summary > div {
+                width: 100%;
+                text-align: center !important; /* Center summary items */
+            }
+            .cart-summary .text-end {
+                text-align: center !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-title { font-size: 1rem; }
+            .price { font-size: 1rem; }
+            .quantity-input { width: 40px; }
+            .quantity-btn { padding: 4px 6px; }
+            .cart-container { padding: 20px 15px; }
+            .checkout-btn, .continue-shopping-btn { width: 100%; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header :: header-fragment}"></div>
+
+<!-- Main Cart Content -->
+<div class="container cart-container mt-4">
+    <h1 class="mb-4 mb-md-5 text-center"><i class="fas fa-shopping-cart text-primary me-2"></i>Giỏ Hàng</h1>
+
+    <!-- Container for SweetAlert messages (kept for clarity, but SWAL manages its own DOM) -->
+    <div id="alert-container" style="display: none;"></div>
+
+    <!-- Empty Cart Message -->
+    <div th:if="${#lists.isEmpty(cartItems)}" class="text-center py-5">
+        <!-- Empty cart content (Keep as is) -->
+        <img src="/images/emptyCart.webp" alt="Giỏ hàng trống" class="img-fluid mx-auto d-block empty-cart-image">
+        <div class="alert alert-secondary mt-4" role="alert"> <!-- Use secondary color for info -->
+            <h5 class="fw-semibold mb-2"><i class="fas fa-info-circle"></i> Giỏ hàng của bạn hiện chưa có sản phẩm nào.</h5>
+            <p class="empty-cart-message mb-0">
+                <a th:href="@{/home}" class="btn btn-primary mt-2">
+                    <i class="fas fa-shopping-bag me-2"></i> Bắt đầu mua sắm
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Cart Items List -->
+    <div th:unless="${#lists.isEmpty(cartItems)}">
+        <ul class="list-unstyled">
+            <!-- Loop through items -->
+            <li class="cart-item" th:each="item : ${cartItems}" th:classappend="${!item.isAvailable} ? 'unavailable'">
+
+                <!-- Item Image -->
+                <div class="cart-item-image">
+                    <img th:src="${item.hinhAnhUrl}" th:alt="${item.tenSanPham}" class="img-fluid">
+                </div>
+
+                <!-- Item Details -->
+                <div class="cart-item-details">
+                    <h5 class="product-title" th:text="${item.tenSanPham}">Product Name</h5>
+                    <p class="product-info mb-1"><i class="fas fa-palette"></i> Màu: <strong th:text="${item.mauSac}">Color</strong></p>
+                    <p class="product-info mb-1"><i class="fas fa-ruler-horizontal"></i> Cỡ: <strong th:text="${item.kichCo}">Size</strong></p>
+                    <!-- Availability Message -->
+                    <div th:if="${!item.isAvailable}" class="availability-message">
+                        <i class="fas fa-exclamation-triangle me-1"></i> <!-- Changed icon -->
+                        <span th:text="${item.availabilityMessage}">Availability Info</span>
+                        <!-- ** UPDATED Message Logic ** -->
+                        <span th:if="${item.maxAvailableQuantity <= 0}" class="d-block fst-italic mt-1">Hết hàng. Vui lòng xóa sản phẩm này.</span>
+                        <span th:if="${item.maxAvailableQuantity > 0}" class="d-block fst-italic mt-1">
+                            Chỉ còn <strong th:text="${item.maxAvailableQuantity}"></strong> sản phẩm. Vui lòng giảm số lượng hoặc xóa.
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Quantity Controls -->
+                <div class="quantity-controls">
+                    <form th:action="@{/gio-hang/update}" method="post" class="quantity-form d-inline-block">
+                        <input type="hidden" name="itemId" th:value="${item.gioHangId}">
+                        <div class="input-group input-group-sm">
+                            <!-- ** UPDATED Decrease Button Disable Logic ** -->
+                            <button class="quantity-btn decrease-btn btn btn-outline-secondary" type="button"
+                                    th:disabled="${item.maxAvailableQuantity <= 0 or item.soLuong <= 1}">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <!-- ** UPDATED Input Disable Logic ** -->
+                            <input type="number" name="quantity" class="form-control quantity-input border-secondary text-center"
+                                   th:value="${item.soLuong}"
+                                   min="1"
+                                   th:disabled="${item.maxAvailableQuantity <= 0}"
+                                   th:attr="data-max-available=${item.maxAvailableQuantity}, data-original-value=${item.soLuong}, data-item-id=${item.gioHangId}"
+                                   aria-label="Số lượng sản phẩm">
+                            <!-- ** UPDATED Increase Button Disable Logic (Simplified for initial load) ** -->
+                            <button class="quantity-btn increase-btn btn btn-outline-secondary" type="button"
+                                    th:disabled="${!item.isAvailable}"> <!-- JS will refine this based on current value vs max -->
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Price Column -->
+                <div class="price-col">
+                    <p class="price mb-0"><span th:text="${#numbers.formatDecimal(item.gia, 0, 'COMMA', 0, 'POINT') + ' đ'}">Price</span></p>
+                </div>
+
+                <!-- Remove Column -->
+                <div class="remove-col">
+                    <form th:action="@{/gio-hang/remove/{itemId}(itemId=${item.gioHangId})}" method="post" class="remove-form d-inline-block">
+                        <!-- Keep remove button as is -->
+                        <button type="button" class="remove-item-btn btn btn-sm btn-link text-danger p-0" title="Xóa sản phẩm">
+                            <i class="fas fa-times-circle fa-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+
+        <!-- Cart Summary Section (Keep as is) -->
+        <div class="cart-summary">
+            <div>
+                <a th:href="@{/home}" class="btn btn-outline-secondary continue-shopping-btn">
+                    <i class="fas fa-arrow-left me-2"></i> Mua thêm sản phẩm khác
+                </a>
+            </div>
+            <div class="text-end">
+                <h4 class="cart-total mb-2">
+                    <i class="fas fa-coins me-1"></i>Tổng cộng:
+                    <span id="cart-total-price" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}" class="text-success fw-bold ms-1">0 đ</span>
+                </h4>
+                <!-- Checkout button logic remains the same, relying on hasUnavailableItems -->
+                <a th:href="@{/checkout}"
+                   class="btn btn-primary checkout-btn mt-1 fw-bold"
+                   th:classappend="${hasUnavailableItems} ? 'disabled' : ''"
+                   th:attr="aria-disabled=${hasUnavailableItems}, title=${hasUnavailableItems ? 'Vui lòng kiểm tra lại giỏ hàng trước khi thanh toán.' : 'Tiến hành thanh toán'}">
+                    <i class="fas fa-credit-card me-2"></i> Thanh toán
+                </a>
+                <div th:if="${hasUnavailableItems}" class="text-warning mt-2 fw-medium checkout-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Có sản phẩm cần điều chỉnh số lượng hoặc xóa.
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /.container -->
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/footer :: footer-fragment}"></div>
+
+<!-- JS Includes (Keep as is) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+<!-- ** REVISED Inline JavaScript for Cart Logic ** -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- SweetAlert Initialization (Keep as is) ---
+        const successMessage = /*[[${successMessage}]]*/ null;
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+        const warningMessage = /*[[${warningMessage}]]*/ null;
+        const infoMessage = /*[[${infoMessage}]]*/ null;
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3500, // Slightly longer timer for warnings
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        if (successMessage) Toast.fire({ icon: 'success', title: successMessage });
+        if (infoMessage) Toast.fire({ icon: 'info', title: infoMessage });
+        if (warningMessage) Toast.fire({ icon: 'warning', title: warningMessage });
+        if (errorMessage) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Có lỗi xảy ra',
+                text: errorMessage,
+                confirmButtonText: 'Đã hiểu'
+            });
+        }
+
+        // --- Debounce Function (Keep as is) ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // --- Debounced Form Submission (Keep as is) ---
+        const debouncedSubmit = debounce(function(formElement) {
+            if (formElement) {
+                formElement.closest('.cart-item')?.style.setProperty('opacity', '0.7', 'important');
+                formElement.submit();
+            }
+        }, 600);
+
+        // --- ** NEW: Update Button States Function ** ---
+        function updateButtonStates(inputField) {
+            if (!inputField || inputField.disabled) { // Don't update if input itself is disabled (max=0)
+                // Ensure buttons are also disabled if input is
+                const form = inputField.closest('.quantity-form');
+                if (form) {
+                    const decreaseBtn = form.querySelector('.decrease-btn');
+                    const increaseBtn = form.querySelector('.increase-btn');
+                    if (decreaseBtn) decreaseBtn.disabled = true;
+                    if (increaseBtn) increaseBtn.disabled = true;
+                }
+                return;
+            }
+
+            const form = inputField.closest('.quantity-form');
+            if (!form) return;
+
+            const decreaseBtn = form.querySelector('.decrease-btn');
+            const increaseBtn = form.querySelector('.increase-btn');
+            const minVal = parseInt(inputField.min) || 1;
+            const maxAvailableStr = inputField.getAttribute('data-max-available');
+            const maxAvailable = (maxAvailableStr !== null && !isNaN(parseInt(maxAvailableStr))) ? parseInt(maxAvailableStr) : Infinity;
+            const currentValue = parseInt(inputField.value);
+            const isItemUnavailable = inputField.closest('.cart-item')?.classList.contains('unavailable');
+
+            // Basic check: disable buttons if current value is invalid
+            if (isNaN(currentValue)) {
+                if (decreaseBtn) decreaseBtn.disabled = true;
+                if (increaseBtn) increaseBtn.disabled = true;
+                return;
+            }
+
+            // Update Decrease Button
+            if (decreaseBtn) {
+                decreaseBtn.disabled = (currentValue <= minVal); // Only disable if at min
+            }
+
+            // Update Increase Button
+            if (increaseBtn) {
+                // Disable if current value >= max OR if the item started as unavailable (even if value drops below max)
+                increaseBtn.disabled = (currentValue >= maxAvailable || isItemUnavailable);
+            }
+        }
+
+
+        // --- Revised Client-Side Quantity Handling ---
+        function handleQuantityChange(inputField, isButtonClick = false) {
+            // If input is disabled (max=0 case), do nothing.
+            if (!inputField || inputField.disabled) return false;
+
+            let form = inputField.closest('.quantity-form');
+            let isValid = true;
+            inputField.classList.remove('is-invalid'); // Clear previous validation
+
+            let currentValue = parseInt(inputField.value);
+            const minVal = parseInt(inputField.min) || 1;
+            const maxAvailableStr = inputField.getAttribute('data-max-available');
+            // Max available is crucial, default to a very high number if not specified or invalid,
+            // BUT if the item is '.unavailable', the maxAvailable IS the strict limit.
+            const isItemUnavailable = inputField.closest('.cart-item')?.classList.contains('unavailable');
+            let maxAvailable = Infinity;
+            if (maxAvailableStr !== null && !isNaN(parseInt(maxAvailableStr))) {
+                maxAvailable = parseInt(maxAvailableStr);
+            }
+            // If the item is marked unavailable, maxAvailable MUST be respected as the ceiling.
+            // If it's available, Infinity is fine if no specific stock is given.
+
+            const originalValue = inputField.getAttribute('data-original-value') || inputField.defaultValue;
+
+            // 1. Handle NaN / Empty Input
+            if (isNaN(currentValue)) {
+                // Don't submit, maybe revert? For now, just prevent submit and update buttons.
+                updateButtonStates(inputField);
+                // Optionally show a toast or revert to original value
+                // inputField.value = originalValue;
+                // Toast.fire({ icon: 'error', title: 'Vui lòng nhập số hợp lệ.' });
+                return false;
+            }
+
+            // 2. Check Minimum
+            if (currentValue < minVal) {
+                currentValue = minVal;
+                inputField.value = currentValue;
+                if (!isButtonClick) { // Only show toast on direct input error
+                    Toast.fire({ icon: 'info', title: `Số lượng tối thiểu là ${minVal}.` });
+                }
+                isValid = false; // Value was corrected, might not need submission yet unless original was different
+            }
+
+            // 3. Check Maximum Available Stock
+            // Max check is strict only if maxAvailable is not Infinity
+            if (maxAvailable !== Infinity && currentValue > maxAvailable) {
+                currentValue = maxAvailable; // Correct value back to max
+                inputField.value = currentValue;
+                inputField.classList.add('is-invalid'); // Show invalid state visually
+
+                // Show specific warning toast
+                Toast.fire({
+                    icon: 'warning',
+                    title: `Chỉ còn ${maxAvailable} sản phẩm khả dụng.`,
+                    timer: 4000 // Longer timer for this warning
+                });
+                isValid = false; // Indicate value was capped
+            }
+
+            // Update button states based on the *potentially corrected* currentValue
+            updateButtonStates(inputField);
+
+            // 4. Submit only if the value has actually changed from the last known valid state
+            if (String(currentValue) !== originalValue) {
+                // Only trigger submit if it's a valid number (even if capped)
+                if (!isNaN(currentValue) && currentValue >= minVal) {
+                    inputField.setAttribute('data-original-value', currentValue); // Update marker *before* debounce
+                    debouncedSubmit(form);
+                    return true; // Submitted
+                }
+            }
+            // If value was corrected back to original, or was invalid, don't submit
+            return false; // No change or invalid input prevented submit
+        }
+
+        // --- Event Listeners ---
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            // Store initial value and set initial button states
+            input.setAttribute('data-original-value', input.value);
+            updateButtonStates(input); // Initialize button states on load
+
+            input.addEventListener('input', function() { handleQuantityChange(this, false); });
+            input.addEventListener('blur', function() { // Also validate on blur
+                // Re-validate in case user leaves an invalid value (like empty)
+                let currentValue = parseInt(this.value);
+                if (isNaN(currentValue) || currentValue < (parseInt(this.min) || 1)) {
+                    this.value = this.getAttribute('data-original-value'); // Revert to last valid
+                    this.classList.remove('is-invalid');
+                    updateButtonStates(this); // Update buttons based on reverted value
+                } else {
+                    handleQuantityChange(this, false); // Standard handler if potentially valid
+                }
+            });
+            input.addEventListener('keypress', function(event) { if (!/\d/.test(event.key)) event.preventDefault(); });
+        });
+
+        document.querySelectorAll('.decrease-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.disabled) return;
+                const inputField = this.closest('.input-group').querySelector('.quantity-input');
+                if (inputField.disabled) return; // Check if input itself is disabled
+
+                let currentValue = parseInt(inputField.value);
+                const minVal = parseInt(inputField.min) || 1;
+                if (!isNaN(currentValue) && currentValue > minVal) {
+                    inputField.value = currentValue - 1;
+                    handleQuantityChange(inputField, true); // Trigger change handler
+                } else if (isNaN(currentValue)) { // Handle case where input might be invalid
+                    inputField.value = minVal; // Set to min
+                    handleQuantityChange(inputField, true);
+                }
+            });
+        });
+
+        document.querySelectorAll('.increase-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.disabled) return;
+                const inputField = this.closest('.input-group').querySelector('.quantity-input');
+                if (inputField.disabled) return; // Check if input itself is disabled
+
+                let currentValue = parseInt(inputField.value);
+                if (!isNaN(currentValue)) {
+                    inputField.value = currentValue + 1;
+                    handleQuantityChange(inputField, true); // Trigger change handler (will cap if needed)
+                } else { // Handle case where input might be invalid
+                    const minVal = parseInt(inputField.min) || 1;
+                    inputField.value = minVal; // Set to min
+                    handleQuantityChange(inputField, true);
+                }
+            });
+        });
+
+        // --- Remove Item Confirmation (Keep as is) ---
+        document.querySelectorAll('.remove-item-btn').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                const form = this.closest('.remove-form');
+                const cartItemElement = form.closest('.cart-item');
+                const productName = cartItemElement?.querySelector('.product-title')?.textContent || 'Sản phẩm';
+
+                Swal.fire({
+                    title: `Xác nhận xóa`,
+                    html: `Bạn muốn xóa <strong>${productName}</strong> khỏi giỏ hàng?`,
+                    icon: 'question',
+                    iconColor: '#6c757d',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xác nhận',
+                    cancelButtonText: 'Hủy',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        cartItemElement?.style.setProperty('opacity', '0.5', 'important');
+                        cartItemElement?.style.setProperty('transition', 'opacity 0.4s ease');
+                        setTimeout(() => form.submit(), 150);
+                    }
+                })
+            });
+        });
+
+    });
+</script>
+
+</body>
+</html>

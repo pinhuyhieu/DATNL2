@@ -1,0 +1,79 @@
+<th:block th:fragment="header-fragment"><!-- header.html -->
+    <div class="top-bar py-2 d-none d-md-block">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="me-3"><i class="fas fa-phone-alt me-2"></i> 082626689</span>
+                    <span><i class="fas fa-envelope me-2"></i> info@sundaystore.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="me-3"><i
+                            class="fas fa-truck me-2"></i> Giao hàng siêu tốc trên toàn quốc</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white main-navbar py-3">
+        <div class="container">
+            <a class="navbar-brand" href="/">Sunday<span>Store</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/bo-suu-tap">Bộ sưu tập</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Liên hệ</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <!-- Ô tìm kiếm -->
+                    <form class="d-flex me-3" th:action="@{/search}" method="get">
+                        <input class="form-control me-2" type="search" placeholder="Tìm sản phẩm..." aria-label="Search" name="keyword">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+
+                    <!-- Giỏ hàng -->
+                    <a href="/gio-hang" class="me-3 text-dark position-relative">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span th:if="${cartCount > 0}" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" th:text="${cartCount}">3</span>
+                    </a>
+
+                    <!-- Đăng nhập / Dropdown User -->
+                    <th:block th:if="${user == null}">
+                        <a href="/login" class="btn btn-outline-primary me-2">Đăng nhập</a>
+                    </th:block>
+                    <th:block th:if="${user != null}">
+                        <li class="nav-item dropdown" style="list-style: none;"> <!-- Thêm style="list-style: none;" để loại bỏ dấu chấm của li -->
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-1"></i> <span th:text="${user.ten}"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" th:href="@{/order-history}"><i class="fas fa-history me-2"></i> Lịch sử mua hàng</a></li>
+                                <li><a class="dropdown-item" th:href="@{/tai-khoan}"><i class="fas fa-user-cog me-2"></i> Tài khoản</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </nav>
+</th:block>

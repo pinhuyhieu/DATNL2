@@ -1,0 +1,38 @@
+/* Hộp thoại bo góc mạnh và hiện đại */
+.custom-popup {
+    border-radius: 20px !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Tiêu đề */
+.custom-title {
+    font-family: 'Arial', sans-serif;
+    font-size: 22px !important;
+    font-weight: bold;
+}
+
+/* Icon */
+.custom-icon {
+    border-radius: 50% !important;
+    background-color: #ffffff !important;
+    color: #f39c12 !important;
+}
+
+/* Các nút */
+.custom-actions {
+    margin-top: 15px;
+}
+
+.custom-confirm-btn {
+    border-radius: 30px !important;
+    background-color: #1e88e5 !important;
+    font-size: 14px;
+    padding: 10px 20px;
+}
+
+.custom-cancel-btn {
+    border-radius: 30px !important;
+    background-color: #d33 !important;
+    font-size: 14px;
+    padding: 10px 20px;
+}

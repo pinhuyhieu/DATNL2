@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Nhân Viên</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Reset and Body */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Updated gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container and Form */
+        .register-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 900px; /* Optional: limit max width */
+        }
+
+        .register-box {
+            background-color: #fff;
+            padding: 50px 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px; /* Max width for the form box */
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #333;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            height: 3px;
+            width: 60px;
+            background: linear-gradient(to right, #6a11cb, #2575fc); /* Matches body gradient */
+            border-radius: 1.5px;
+        }
+
+        /* Form Group and Input Styling */
+        .form-group {
+            position: relative;
+            margin-bottom: 25px;
+            text-align: left;
+            /* No height/flex on form-group itself */
+        }
+
+        /* Wrapper for Input and Icon to control alignment */
+        .input-wrapper {
+            position: relative; /* Establish positioning context for icon */
+            display: flex; /* Use flexbox for vertical alignment */
+            align-items: center; /* Vertically center items (icon and input) */
+            width: 100%; /* Take full width of form-group */
+        }
+
+        .form-group i {
+            position: absolute; /* Position icon relative to .input-wrapper */
+            left: 15px;
+            /* Remove top/transform centering from parent, flexbox handles it */
+            /* top: 50%; */
+            /* transform: translateY(-50%); */
+            color: #aaa;
+            font-size: 1.1em;
+            z-index: 2; /* Ensure icon is above input */
+            /* Adjust flex alignment if needed, though align-items center on wrapper is key */
+        }
+
+        .form-group input {
+            width: 100%; /* Input takes full width of wrapper */
+            padding: 12px 15px 12px 45px; /* Left padding for icon */
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            /* Add flex-grow so input takes available space if needed, but 100% width is often simpler */
+            flex-grow: 1;
+            z-index: 1; /* Ensure input is behind icon */
+        }
+
+        .form-group input:focus {
+            border-color: #2575fc; /* Focus color */
+            outline: none;
+            box-shadow: 0 0 8px rgba(37, 117, 252, 0.3);
+        }
+
+        /* Validation Errors (Thymeleaf) */
+        .error-message {
+            color: #e74c3c; /* Red color */
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: block; /* Ensure it takes full width below the input-wrapper */
+            text-align: left;
+            padding-left: 45px; /* Align text with input content */
+        }
+
+        /* Button */
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(to right, #5d0fad, #1a5bcc); /* Darker on hover */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-register i {
+            margin-right: 8px;
+        }
+
+        /* Footer Links */
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .footer-links a {
+            color: #2575fc; /* Link color */
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #6a11cb; /* Hover color */
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+    <div class="register-box">
+        <h2>
+            <i class="fas fa-user-plus"></i> Đăng Ký Nhân Viên
+        </h2>
+        <form th:action="@{/nhanvien/register}" th:object="${nhanVien}" method="post">
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="ten" th:field="*{ten}" placeholder="Họ và Tên" required>
+                </div>
+                <span th:if="${#fields.hasErrors('ten')}" th:errors="*{ten}" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input type="text" id="soDienThoai" th:field="*{soDienThoai}" placeholder="Số Điện Thoại" required>
+                </div>
+                <span th:if="${#fields.hasErrors('soDienThoai')}" th:errors="*{soDienThoai}" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="matKhau" th:field="*{matKhau}" placeholder="Mật Khẩu" required>
+                </div>
+                <span th:if="${#fields.hasErrors('matKhau')}" th:errors="*{matKhau}" class="error-message"></span>
+            </div>
+            <button type="submit" class="btn-register">
+                <i class="fas fa-user-plus"></i> Đăng Ký
+            </button>
+        </form>
+        <div class="footer-links">
+            <p>Đã có tài khoản? <a href="/nhanvien/login"><i class="fas fa-sign-in-alt"></i> Đăng nhập ngay</a></p>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /* Check for SweetAlert messages */
+    window.onload = function() {
+        // Check for registration error message (from service or controller, not BindingResult errors)
+        const errorMessage = [[${message}]]; // 'message' is the model attribute name for non-validation errors
+
+        // Check for the boolean flag indicating BindingResult errors were present
+        // Use '!= null ? ... : false' to handle the case where the attribute isn't present on initial GET
+        const hasBindingErrors = [[${hasBindingErrors != null ? hasBindingErrors : false}]];
+
+        if (errorMessage && errorMessage !== 'Đăng ký thành công') { // Show specific error message from service
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi Đăng Ký',
+                text: errorMessage,
+                confirmButtonText: 'Đóng'
+            });
+        } else if (hasBindingErrors) { // Show generic validation error if BindingResult has errors (checked by the flag)
+            // Specific field errors will be shown by Thymeleaf below the inputs.
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi Validation',
+                text: 'Vui lòng kiểm tra lại thông tin đăng ký.',
+                confirmButtonText: 'Đóng'
+            });
+        }
+        // Success message 'Đăng ký thành công' is handled on the login page after redirect
+    };
+</script>
+
+</body>
+</html>

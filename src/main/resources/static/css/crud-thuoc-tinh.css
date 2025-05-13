@@ -1,0 +1,488 @@
+/* css/crud-thuoc-tinh.css */
+
+/* ======================================== */
+/*  FORM STYLES (Kiểu dáng chung cho Form CRUD thuộc tính) */
+/* ======================================== */
+.crud-form {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.crud-form h2 {
+    color: #3498db; /* Màu tiêu đề form */
+    margin-bottom: 25px;
+    text-align: center; /* Căn giữa tiêu đề form */
+}
+
+.crud-form .form-group {
+    margin-bottom: 20px;
+}
+
+.crud-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: bold;
+}
+
+.crud-form input[type="text"],
+.crud-form textarea, /* Thêm textarea vào đây */
+.crud-form select,
+.filter-form input[type="text"], /* Style cho input trong filter form */
+.filter-form select { /* Style cho select trong filter form */
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.crud-form textarea { /* Style riêng cho textarea */
+    height: 150px; /* Chiều cao mặc định cho textarea */
+    resize: vertical; /* Cho phép resize theo chiều dọc */
+}
+
+
+.crud-form input[type="text"]:focus,
+.crud-form textarea:focus, /* Thêm textarea vào focus style */
+.crud-form select:focus,
+.filter-form input[type="text"]:focus, /* Focus style cho input trong filter form */
+.filter-form select:focus { /* Focus style cho select trong filter form */
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+}
+
+.crud-form select,
+.filter-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: calc(100% - 10px);
+    background-position-y: 50%;
+    padding-right: 30px;
+}
+
+.crud-form .invalid-feedback {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+    display: block; /* Hiển thị invalid-feedback */
+}
+
+.crud-form input[type="text"].is-invalid,
+.crud-form textarea.is-invalid, /* Thêm textarea vào is-invalid style */
+.crud-form select.is-invalid,
+.filter-form input[type="text"].is-invalid, /* Is-invalid style cho input trong filter form */
+.filter-form select.is-invalid { /* Is-invalid style cho select trong filter form */
+    border-color: #e74c3c;
+}
+
+.crud-form .form-actions {
+    display: flex;
+    justify-content: flex-start; /* Căn nút về bên trái */
+    gap: 10px; /* Khoảng cách giữa các nút */
+    margin-top: 20px;
+}
+
+.crud-form .submit-button,
+.crud-form .cancel-button {
+    background-color: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.crud-form .submit-button:hover {
+    background-color: #2980b9;
+}
+
+.crud-form .cancel-button {
+    background-color: #777;
+}
+
+.crud-form .cancel-button:hover {
+    background-color: #555;
+}
+
+/* Thêm style cho nút "Bỏ lọc" trong filter form */
+.filter-form .cancel-button.btn {
+    background-color: #777; /* Màu xám tương tự nút cancel form */
+    color: white;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.filter-form .cancel-button.btn:hover {
+    background-color: #555; /* Màu xám đậm hơn khi hover */
+}
+
+
+/* ======================================== */
+/*  TABLE STYLES (Kiểu dáng chung cho Bảng CRUD thuộc tính) */
+/* ======================================== */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden; /* Bo góc bảng */
+    margin-bottom: 20px;
+}
+
+.styled-table thead tr {
+    background-color: #3498db;
+    color: #ffffff;
+    text-align: left;
+    font-weight: bold;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #3498db;
+}
+
+.styled-table tbody tr.active-row {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.styled-table .action-buttons {
+    text-align: center; /* Căn giữa nút hành động */
+}
+
+.styled-table .edit-button,
+.styled-table .status-button, /* Thêm style cho nút status */
+.styled-table .detail-button { /* Thêm style cho nút detail */
+    display: inline-block;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none; /* Loại bỏ gạch chân mặc định của link */
+    color: white; /* Màu chữ trắng */
+    transition: background-color 0.3s ease;
+    font-size: 14px; /* Font size nhỏ hơn */
+    margin: 2px; /* Thêm margin để tách nút */
+}
+
+
+.styled-table .edit-button {
+    background-color: #ffc107; /* Màu vàng cho nút sửa */
+    color: black; /* Màu chữ đen cho nút sửa */
+}
+
+.styled-table .edit-button:hover {
+    background-color: #e0a800; /* Màu vàng đậm hơn khi hover */
+}
+
+.styled-table .status-button {
+    background-color: #28a745; /* Màu xanh lá cây cho nút trạng thái (hoạt động) */
+}
+
+.styled-table .status-button:hover {
+    background-color: #218838; /* Màu xanh lá đậm hơn khi hover */
+}
+
+.styled-table .status-button.inactive { /* Style riêng cho nút status khi inactive */
+    background-color: #dc3545; /* Màu đỏ cho nút trạng thái (không hoạt động) */
+}
+
+.styled-table .status-button.inactive:hover {
+    background-color: #c82333; /* Màu đỏ đậm hơn khi hover */
+}
+
+
+.styled-table .detail-button {
+    background-color: #17a2b8; /* Màu xanh dương nhạt cho nút chi tiết */
+}
+
+.styled-table .detail-button:hover {
+    background-color: #138496; /* Màu xanh dương đậm hơn khi hover */
+}
+
+
+/* ======================================== */
+/*  ALERT STYLES (Kiểu dáng chung cho Thông báo) - Sửa lại để không dùng class bootstrap */
+/* ======================================== */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    display: none; /* Ẩn alert mặc định */
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    position: relative; /* Để định vị nút close */
+}
+
+.alert.show {
+    display: block; /* Hiển thị alert khi có class 'show' */
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert .close-btn {
+    position: absolute;
+    top: 0px;
+    right: 5px;
+    font-size: 1.5em;
+    font-weight: bold;
+    line-height: 1;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    opacity: 0.5; /* Làm mờ nút close một chút */
+}
+
+.alert .close-btn:hover {
+    opacity: 1; /* Hiển thị rõ hơn khi hover */
+}
+
+/* Same styles as before, with minor additions */
+/*.container { max-width: 1200px; margin: 0 auto; padding: 20px; }*/
+.section-title { font-size: 1.5rem; margin-bottom: 1.5rem; color: #333; display: flex; align-items: center; }
+.section-title i { margin-right: 0.5rem; color: #4a6fdc; }
+.search-filter-panel { background-color: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.search-bar { display: flex; margin-bottom: 15px; }
+.search-bar input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px 0 0 5px; font-size: 14px; }
+.search-bar button { background-color: #4a6fdc; color: white; border: none; border-radius: 0 5px 5px 0; padding: 0 15px; cursor: pointer; transition: background-color 0.3s; }
+.search-bar button:hover { background-color: #3a5fc8; }
+.filter-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+.filter-controls select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+.filter-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.filter-actions button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
+.apply-filter { background-color: #4a6fdc; color: white; }
+.apply-filter:hover { background-color: #3a5fc8; }
+.reset-filter { background-color: #f1f1f1; color: #333; }
+.reset-filter:hover { background-color: #e1e1e1; }
+.crud-form { background-color: white; border-radius: 10px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.crud-form h2 { margin-top: 0; color: #333; font-size: 1.5rem; margin-bottom: 20px; display: flex; align-items: center; }
+.crud-form h2 i { margin-right: 10px; color: #4a6fdc; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; transition: border-color 0.3s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #4a6fdc; outline: none; }
+.invalid-feedback { color: #dc3545; font-size: 12px; margin-top: 5px; display: block; }
+.form-actions { display: flex; justify-content: flex-end; gap: 15px; }
+.submit-button, .cancel-button { padding: 10px 20px; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+.submit-button { background-color: #4a6fdc; color: white; }
+.submit-button:hover { background-color: #3a5fc8; }
+.cancel-button { background-color: #f1f1f1; color: #333; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.cancel-button:hover { background-color: #e1e1e1; }
+.table-responsive { overflow-x: auto; }
+.styled-table { width: 100%; border-collapse: collapse; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.styled-table thead { background-color: #4a6fdc; color: white; }
+.styled-table th { padding: 15px; text-align: left; font-weight: 500; }
+.styled-table td { padding: 12px 15px; border-bottom: 1px solid #f2f2f2; }
+.styled-table tbody tr:last-child td { border-bottom: none; }
+.styled-table tbody tr:hover { background-color: #f9f9f9; }
+.action-buttons { display: flex; gap: 10px; }
+.action-button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; transition: all 0.3s; }
+.action-button i { margin-right: 5px; font-size: 14px; }
+.edit-button { background-color: #3498db; color: white; }
+.edit-button:hover { background-color: #2980b9; }
+.status-button { background-color: #f39c12; color: white; }
+.status-button:hover { background-color: #e67e22; }
+.status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; text-align: center; display: inline-block; }
+.status-active { background-color: #d4edda; color: #155724; }
+.status-inactive { background-color: #f8d7da; color: #721c24; }
+.empty-state { text-align: center; padding: 40px; background-color: #f9f9f9; border-radius: 10px; margin-top: 20px; }
+.empty-state i { font-size: 48px; color: #aaa; margin-bottom: 15px; }
+.empty-state h3 { font-size: 18px; color: #555; margin: 0 0 10px; }
+.empty-state p { color: #777; margin: 0; font-size: 14px; }
+.status-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s;
+}
+.status-button i {
+    margin-right: 5px;
+    font-size: 14px;
+}
+.status-active-button { /* Màu đỏ khi trạng thái "Hoạt động" (theo yêu cầu ngược lại của bạn) */
+    background-color: #dc3545; /* Màu đỏ */
+    color: white;
+}
+.status-active-button:hover {
+    background-color: #c82333; /* Màu đỏ đậm hơn khi hover */
+}
+.status-inactive-button { /* Màu xanh lá cây khi trạng thái "Không hoạt động" (theo yêu cầu ngược lại của bạn) */
+    background-color: #28a745; /* Màu xanh lá cây */
+    color: white;
+}
+.status-inactive-button:hover {
+    background-color: #218838; /* Màu xanh lá cây đậm hơn khi hover */
+}
+
+
+/* ======================================== */
+/*  MODAL STYLES */
+/* ======================================== */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative; /* Để định vị nút close */
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 0;
+    right: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#hoaDonDetailContent {
+    padding: 0 10px 20px 10px;
+}
+
+#hoaDonDetailContent h3 {
+    color: #3498db;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#hoaDonDetailContent p {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* ======================================== */
+/*  CUSTOM ORDER HISTORY TABLE STYLES (Kiểu dáng riêng cho bảng Lịch sử đơn hàng) */
+/* ======================================== */
+.order-history-custom-table {
+    width: 100%;
+    border-collapse: separate; /* Sử dụng 'separate' để có khoảng cách giữa các cell và border-spacing */
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden; /* Bo góc bảng */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+    margin-top: 15px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+.order-history-custom-table thead {
+    background-color: #f8f9fa; /* Nhẹ nhàng hơn, màu nền xám nhạt */
+    border-bottom: 1px solid #e0e0e0; /* Đường kẻ dưới header */
+}
+
+.order-history-custom-table th,
+.order-history-custom-table td {
+    padding: 12px 16px; /* Padding rộng hơn một chút */
+    text-align: left;
+    border-bottom: 1px solid #f2f2f2; /* Đường kẻ giữa các hàng */
+}
+
+.order-history-custom-table th {
+    font-weight: 500; /* Font weight trung bình cho header */
+    color: #555; /* Màu chữ header đậm vừa */
+}
+
+.order-history-custom-table tbody tr:last-child td {
+    border-bottom: none; /* Loại bỏ border-bottom ở hàng cuối cùng */
+}
+
+.order-history-custom-table tbody tr:hover {
+    background-color: #f0f0f0; /* Hiệu ứng hover nhẹ nhàng */
+}
+
+.order-history-custom-table .action-buttons {
+    text-align: center; /* Căn giữa nút hành động */
+}
+
+.order-history-custom-table .detail-button {
+    display: inline-block;
+    padding: 8px 12px;
+    border: 1px solid #3498db; /* Viền xanh dương */
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #3498db; /* Màu chữ xanh dương */
+    transition: all 0.3s ease;
+    font-size: 13px;
+    background-color: transparent; /* Nền trong suốt */
+}
+
+.order-history-custom-table .detail-button:hover {
+    background-color: #e6f2fa; /* Nền xanh dương nhạt khi hover */
+    border-color: #2980b9; /* Viền đậm hơn khi hover */
+    color: #2980b9; /* Chữ đậm hơn khi hover */
+}
