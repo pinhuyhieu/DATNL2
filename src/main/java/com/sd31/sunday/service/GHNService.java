@@ -2,13 +2,12 @@ package com.sd31.sunday.service;
 
 import com.sd31.sunday.DTO.CartItemDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -124,6 +123,7 @@ public class GHNService {
         headers.set("Token", token);
         headers.set("ShopId", String.valueOf(shopId));
         headers.set("Content-Type", "application/json");
+        int serviceId = getAvailableServiceId(1482, toDistrictId);
 
         // Tính tổng số lượng sản phẩm
         int totalQuantity = cartItems.stream().mapToInt(CartItemDTO::getSoLuong).sum();
@@ -133,7 +133,7 @@ public class GHNService {
         int totalWeight = totalQuantity * 500; // Tổng trọng lượng (gram)
 
         Map<String, Object> body = new HashMap<>();
-        body.put("service_id", 53321); // GHN Tiêu chuẩn
+        body.put("service_id", serviceId); // GHN Tiêu chuẩn
         body.put("from_district_id", fromDistrictId);
         body.put("to_district_id", toDistrictId);
         body.put("to_ward_code", toWardCode);
@@ -173,4 +173,42 @@ public class GHNService {
             throw new RuntimeException("Lỗi không xác định khi tính phí vận chuyển: " + e.getMessage());
         }
     }
+    public int getAvailableServiceId(int fromDistrictId, int toDistrictId) {
+        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/available-services\n";
+
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("shop_id", shopId); // ✅ Thay bằng shop ID thật của bạn
+        requestBody.put("from_district", fromDistrictId);
+        requestBody.put("to_district", toDistrictId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Token", token); // ⚠️ Token GHN của bạn
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                String.class
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            JSONObject jsonResponse = new JSONObject(response.getBody());
+            JSONArray dataArray = jsonResponse.getJSONArray("data");
+
+            if (!dataArray.isEmpty()) {
+                int serviceId = dataArray.getJSONObject(0).getInt("service_id"); // Lấy cái đầu tiên
+                System.out.println("✅ service_id được chọn: " + serviceId);
+                return serviceId;
+            } else {
+                throw new RuntimeException("❌ Không có dịch vụ khả dụng cho tuyến này.");
+            }
+        } else {
+            throw new RuntimeException("❌ Lỗi GHN khi lấy available-services: " + response.getBody());
+        }
+    }
+
+
 }
