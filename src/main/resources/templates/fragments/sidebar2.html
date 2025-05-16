@@ -1,82 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Sidebar Quản Trị</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- responsive -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #12121a;
+        }
+
+        #sidebar {
+            width: 260px;
+            background-color: #1f1f2e;
+            color: #ffffff;
+            height: 100vh;
+            padding-top: 10px;
+            position: fixed;
+            transition: all 0.3s;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        #sidebar .logo {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 0;
+            color: #ff6b00;
+        }
+
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #sidebar ul li {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #sidebar ul li.active,
+        #sidebar ul li:hover {
+            background-color: #ff6b00;
+        }
+
+        #sidebar ul li a {
+            text-decoration: none;
+            color: #d0d0d0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            transition: 0.3s;
+        }
+
+        #sidebar ul li.active a,
+        #sidebar ul li:hover a {
+            color: #fff;
+        }
+
+        #sidebar ul li a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        #toggle-btn,
+        .logout-btn,
+        .dropdown-btn {
+            background-color: transparent;
+            color: #d0d0d0;
+            border: none;
+            width: 100%;
+            text-align: left;
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: background-color 0.3s;
+        }
+
+        #toggle-btn:hover,
+        .logout-btn:hover,
+        .dropdown-btn:hover {
+            background-color: #ff6b00;
+            color: #fff;
+        }
+
+        .sub-menu {
+            display: none;
+            background-color: #2b2b3c;
+        }
+
+        .dropdown-btn.active + .sub-menu,
+        .sub-menu.force-open {
+            display: block;
+        }
+
+        .sub-menu li a {
+            padding-left: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+            }
+
+            #sidebar.open {
+                transform: translateX(0);
+            }
+
+            #menu-toggle {
+                display: block;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 1100;
+                background-color: #ff6b00;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                font-size: 18px;
+                border-radius: 5px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            #menu-toggle {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Nút toggle khi trên mobile -->
+<button id="menu-toggle"><i class="fas fa-bars"></i></button>
+
 <nav id="sidebar" th:fragment="sidebar">
+    <div class="logo">FStore</div>
     <ul>
         <li>
             <button onclick="toggleSidebar()" id="toggle-btn">
-                <i class="fas fa-angle-double-left"></i>
+                <i class="fas fa-angle-double-left"></i> <span>Thu gọn</span>
             </button>
         </li>
         <li th:class="${activePage == 'thong-ke' ? 'active' : ''}">
-            <a href="/admin/thong-ke">
-                <i class="fas fa-chart-line"></i>
-                <span>Thống kê</span>
-            </a>
+            <a href="/admin/thong-ke"><i class="fas fa-chart-line"></i> Thống kê</a>
         </li>
         <li th:class="${activePage == 'dashboard' ? 'active' : ''}">
-            <a href="/admin/pos">
-                <i class="fas fa-cash-register"></i>
-                <span>POD Bán Hàng Tại Quầy</span>
-            </a>
+            <a href="/admin/pos"><i class="fas fa-cash-register"></i> Bán Hàng</a>
         </li>
         <li th:class="${activePage == 'sanPhams' ? 'active' : ''}">
-            <a href="/admin/san-pham">
-                <i class="fas fa-tags"></i>
-                <span>Quản lý sản phẩm</span>
-            </a>
+            <a href="/admin/san-pham"><i class="fas fa-tags"></i> Sản phẩm</a>
         </li>
         <li>
-            <button onclick="toggleSubMenu(this)" class="dropdown-btn">
-                <i class="fas fa-list"></i>
-                <span>Quản lý thuộc tính</span>
+            <button onclick="toggleSubMenu(this)" class="dropdown-btn" id="thuocTinhBtn">
+                <i class="fas fa-list"></i> <span>Thuộc tính</span>
                 <i class="fas fa-chevron-down dropdown-icon"></i>
             </button>
-            <ul class="sub-menu">
-                <div>
-                    <li th:class="${activePage == 'danhMuc' ? 'active' : ''}">
-                        <a href="/admin/danh-muc"><i class="fas fa-folder-tree"></i> Danh mục</a>
-                    </li>
-                    <li th:class="${activePage == 'kichCo' ? 'active' : ''}">
-                        <a href="/admin/kich-co"><i class="fas fa-ruler-combined"></i> Kích cỡ</a>
-                    </li>
-                    <li th:class="${activePage == 'thuongHieu' ? 'active' : ''}">
-                        <a href="/admin/thuong-hieu"><i class="fas fa-industry"></i> Thương hiệu</a>
-                    </li>
-                    <li th:class="${activePage == 'mauSac' ? 'active' : ''}">
-                        <a href="/admin/mau-sac"><i class="fas fa-swatchbook"></i> Màu sắc</a>
-                    </li>
-                    <li th:class="${activePage == 'chatLieu' ? 'active' : ''}">
-                        <a href="/admin/chat-lieu"><i class="fas fa-cube"></i> Chất liệu</a>
-                    </li>
-                    <li th:class="${activePage == 'kieuDang' ? 'active' : ''}">
-                        <a href="/admin/kieu-dang"><i class="fas fa-shoe-prints"></i> Kiểu dáng</a>
-                    </li>
-                </div>
+            <ul class="sub-menu" id="thuocTinhSubmenu">
+                <li th:class="${activePage == 'danhMuc' ? 'active' : ''}">
+                    <a href="/admin/danh-muc"><i class="fas fa-folder-tree"></i> Danh mục</a>
+                </li>
+                <li th:class="${activePage == 'kichCo' ? 'active' : ''}">
+                    <a href="/admin/kich-co"><i class="fas fa-ruler-combined"></i> Kích cỡ</a>
+                </li>
+                <li th:class="${activePage == 'thuongHieu' ? 'active' : ''}">
+                    <a href="/admin/thuong-hieu"><i class="fas fa-industry"></i> Thương hiệu</a>
+                </li>
+                <li th:class="${activePage == 'mauSac' ? 'active' : ''}">
+                    <a href="/admin/mau-sac"><i class="fas fa-swatchbook"></i> Màu sắc</a>
+                </li>
+                <li th:class="${activePage == 'chatLieu' ? 'active' : ''}">
+                    <a href="/admin/chat-lieu"><i class="fas fa-cube"></i> Chất liệu</a>
+                </li>
+                <li th:class="${activePage == 'kieuDang' ? 'active' : ''}">
+                    <a href="/admin/kieu-dang"><i class="fas fa-shoe-prints"></i> Kiểu dáng</a>
+                </li>
             </ul>
         </li>
-        <li th:class="${activePage == 'profile' ? 'active' : ''}">
-            <a href="/admin/ma-giam-gia">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Quản lý mã giảm giá</span>
-            </a>
+        <li th:class="${activePage == 'maGiamGia' ? 'active' : ''}">
+            <a href="/admin/ma-giam-gia"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
         </li>
         <li th:class="${activePage == 'hoaDon' ? 'active' : ''}">
-            <a href="/admin/hoa-don">
-                <i class="fas fa-file-invoice-dollar"></i>
-                <span>Quản lý hoá đơn</span>
-            </a>
+            <a href="/admin/hoa-don"><i class="fas fa-file-invoice-dollar"></i> Hoá đơn</a>
         </li>
-        <li th:class="${activePage == 'khachHang' ? 'active' : ''}"> <!-- New menu item for Khách Hàng -->
-            <a href="/admin/khach-hang/hien-thi">
-                <i class="fas fa-users"></i>
-                <span>Quản lý khách hàng</span>
-            </a>
+        <li th:class="${activePage == 'khachHang' ? 'active' : ''}">
+            <a href="/admin/khach-hang/hien-thi"><i class="fas fa-users"></i> Khách hàng</a>
         </li>
         <li>
             <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
             <button type="button" class="logout-btn" onclick="confirmLogout()">
-                <i class="fas fa-door-open"></i>
-                <span>Đăng xuất</span>
+                <i class="fas fa-door-open"></i> Đăng xuất
             </button>
         </li>
     </ul>
-
 </nav>
+
+<script>
+    function toggleSubMenu(btn) {
+        const subMenu = btn.nextElementSibling;
+        subMenu.classList.toggle('show');
+        btn.classList.toggle('active');
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("collapsed");
+    }
+
+    function confirmLogout() {
+        if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+            document.getElementById("logout-form").submit();
+        }
+    }
+
+    // Tự động mở menu con nếu đang ở trang con của "Thuộc tính"
+    window.addEventListener("DOMContentLoaded", function () {
+        const activePage = /*[[${activePage}]]*/ "";
+        const relatedPages = ['danhMuc', 'kichCo', 'thuongHieu', 'mauSac', 'chatLieu', 'kieuDang'];
+        if (relatedPages.includes(activePage)) {
+            document.getElementById('thuocTinhSubmenu').classList.add('force-open');
+            document.getElementById('thuocTinhBtn').classList.add('active');
+        }
+
+        // Toggle menu mobile
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+    });
+</script>
+
+</body>
+</html>

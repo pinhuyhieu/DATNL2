@@ -307,10 +307,11 @@
             <!-- Upload Hình Ảnh -->
             <div class="form-group form-group--upload">
                 <label>Hình ảnh sản phẩm <span style="color: #dc3545">*</span></label> <!-- Added required indicator -->
-                <div class="custom-file-upload">
+                <label for="imageInput" class="custom-file-upload">
                     <i class="fas fa-upload"></i> Chọn hình ảnh
-                    <input type="file" name="images" multiple accept="image/*" class="file-input" id="imageInput">
-                </div>
+                </label>
+                <input type="file" id="imageInput" name="images" multiple accept="image/*" style="display:none;">
+
                 <small>Chọn nhiều ảnh bằng cách giữ phím Ctrl hoặc Shift khi chọn ảnh (Tối đa 5 ảnh, mỗi ảnh <= 5MB)</small> <!-- Added info -->
                 <div class="selected-filenames" id="selectedFilenames">
                     <!-- Filenames will be displayed here -->
