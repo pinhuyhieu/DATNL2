@@ -38,6 +38,8 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
         .custom-file-upload:hover {
@@ -51,7 +53,14 @@
         }
 
         .file-input {
-            display: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
         }
 
         .selected-filenames {
@@ -65,6 +74,76 @@
             padding: 5px;
             background: #f8f9fa;
             border-radius: 4px;
+        }
+
+        /* Style cho phần hiển thị hình ảnh đã tải lên */
+        .uploaded-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .uploaded-images > div {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .uploaded-images > div:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .uploaded-images img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Thêm overlay khi hover */
+        .uploaded-images > div::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .uploaded-images > div:hover::after {
+            opacity: 1;
+        }
+
+        /* Thêm label cho hình ảnh */
+        .uploaded-images .form-group label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .uploaded-images {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .uploaded-images {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 8px;
+            }
         }
 
         /* Filter form styles (reverted to original - each in own row implicitly) */
@@ -324,12 +403,12 @@
                 <!-- You would repeat this for images_1, images_2, etc., up to 5 -->
             </div>
 
-            <!-- Hiển thị ảnh đã tải lên (unchanged) -->
-            <div class="form-group" th:if="${sanPham.hinhAnhs != null && !sanPham.hinhAnhs.isEmpty()}"> <!-- Added check for empty list -->
+            <!-- Hiển thị ảnh đã tải lên -->
+            <div class="form-group" th:if="${sanPham.hinhAnhs != null && !sanPham.hinhAnhs.isEmpty()}">
                 <label>Hình ảnh đã tải lên</label>
                 <div class="uploaded-images">
-                    <div th:each="hinhAnh : ${sanPham.hinhAnhs}">
-                        <img th:src="@{${hinhAnh.hinhAnhUrl}}" alt="Hình ảnh sản phẩm">
+                    <div th:each="hinhAnh : ${sanPham.hinhAnhs}" class="image-container">
+                        <img th:src="@{${hinhAnh.hinhAnhUrl}}" alt="Hình ảnh sản phẩm" loading="lazy">
                     </div>
                 </div>
             </div>
